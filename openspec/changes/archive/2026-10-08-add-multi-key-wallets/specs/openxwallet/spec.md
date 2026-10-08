@@ -1,9 +1,6 @@
-# openxwallet Specification
+# openxwallet Specification Delta
 
-## Purpose
-The neutral wallet: a signing key — or a declared SET of signing keys, each with its own custody — anchored to decentralized identifiers and held by a HOLDER of any subject class the family recognises. This capability owns the holder-agnostic core — the wallet record, the closed custody registry, the attenuated grant, the exercise record, the distinct-holder constraint and the subject attestation — and the rules that make a key a wallet's REFERENCE rather than its content.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: A wallet is a key, never a record of a key
 
@@ -55,49 +52,6 @@ already attributed to a key must remain readable after the key is retired.
 - AND its declared key set is that one key
 - AND every rule keyed on the declared set resolves to the behaviour it had
   before sets were expressible
-
-### Requirement: Authority travels as attenuated grants, never as keys
-
-openXwallet SHALL express every authority a wallet confers as a capability
-GRANT rather than as access to the key itself, because a raw key can be
-neither expired nor revoked and a shared key destroys attribution. A grant
-names its audience, its scope, and its expiry; derivation from a grant is
-MONOTONICALLY NARROWING, so a derived grant may reduce scope or lifetime
-and may never widen either.
-
-#### Scenario: a raw key is never the unit of access
-
-- WHEN a holder authorises another party to act
-- THEN a grant is issued naming audience, scope and expiry
-- AND handing over the key itself is refused as unrepresentable
-
-#### Scenario: attenuation only narrows
-
-- WHEN a grant is derived from a parent grant
-- THEN its scope and lifetime are within the parent's
-- AND a derived grant exceeding its parent in either is invalid
-
-### Requirement: Use requires proof of possession, not presentation
-
-openXwallet SHALL require that exercising a grant carries a signature from
-the holder's wallet key over the request, so that possession of the grant
-alone is insufficient. A grant presented without proof of possession is
-refused, and the refusal names the missing proof rather than the missing
-grant, because the grant was supplied and is not what was lacking. A
-verification failure SHALL be recorded distinctly from an unauthenticated
-request, since the two describe different events.
-
-#### Scenario: a stolen grant is useless
-
-- WHEN a grant is presented without a verifiable signature from its audience
-- THEN the request is refused with the missing proof named
-- AND no authority is conferred by presentation alone
-
-#### Scenario: failed verification is not absence
-
-- WHEN a signature is present but does not verify
-- THEN the failure is recorded as a verification failure
-- AND that record remains distinguishable from an unauthenticated request
 
 ### Requirement: Custody is declared and bounds what a signature evidences
 
@@ -206,47 +160,3 @@ revocation is.
 - THEN an exercise permitted under that key is refused
 - AND the wallet's other declared keys continue to present its authority
 - AND the wallet's own standing is unchanged by the retirement
-
-### Requirement: Distinct-holder constraints are expressible
-
-openXwallet SHALL allow a consuming capability to require that the holder
-exercising a grant for an act is DISTINCT from the holder recorded for a
-named prior act on the same object, so that segregation of duties is
-expressible in the grant model rather than reimplemented per domain. The
-constraint is available, never implied: a capability that does not declare
-it is not subject to it.
-
-#### Scenario: a domain requires two distinct holders
-
-- WHEN a capability declares a distinct-holder constraint between two acts
-- THEN an exercise naming the same holder for both is refused with the
-  constraint named
-- AND the prior act's recorded holder is the comparison basis
-
-#### Scenario: the constraint is opt-in
-
-- WHEN a capability declares no distinct-holder constraint
-- THEN grants are exercised without one
-- AND no default distinctness is inferred
-
-### Requirement: The capability is an authority control, never an identity substrate
-
-openXwallet SHALL keep wallets composable and optional for domains: a
-wallet SHALL NOT become a prerequisite for reconstructing a record,
-resolving a subject, or operating a domain, and a wallet identifier SHALL
-NOT become a subject identifier. This preserves the ratified constraints in
-MedxFactory's `patient-identity-and-assembly` (a wallet address is not
-identity proof) and `patient-snapshot-ledger-custody` (custody stays
-wallet neutral and reconstructable with no wallet available).
-
-#### Scenario: a domain operating without wallets is conformant
-
-- WHEN a domain adopts no wallets
-- THEN its records remain reconstructable and its subjects resolvable
-- AND no capability refuses it for the absence
-
-#### Scenario: a wallet identifier never becomes a subject identifier
-
-- WHEN a subject or record carries an optional wallet reference
-- THEN the reference is attestation, not identity
-- AND resolution treating it as the identifier is a validation failure
