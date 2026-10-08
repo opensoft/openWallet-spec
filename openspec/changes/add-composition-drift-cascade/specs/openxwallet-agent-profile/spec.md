@@ -4,7 +4,7 @@
 
 ### Requirement: A composition change revokes the agent's grants immediately
 
-openXwallet SHALL treat any change in an agent's declared composition as the
+openWallet SHALL treat any change in an agent's declared composition as the
 end of that agent's certified identity: its outstanding grants are revoked at
 once through the core's revocation-propagation rule, with no tolerance band
 and no grace period, and resuming requires re-issuance against the changed

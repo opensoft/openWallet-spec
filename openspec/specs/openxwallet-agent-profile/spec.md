@@ -5,7 +5,7 @@ The first profile over the neutral wallet core, covering holders of class AGENT,
 ## Requirements
 ### Requirement: An agent holder declares its composition
 
-openXwallet SHALL require a wallet holder of class AGENT to declare the
+openWallet SHALL require a wallet holder of class AGENT to declare the
 composition that constitutes its identity — model version, prompt
 contract, tool manifest, policy version, parameters, and retrieval corpus
 where one applies — as a hash over a declared component set. The component
@@ -26,7 +26,7 @@ was actually asserting.
 
 ### Requirement: A composition change revokes the agent's grants immediately
 
-openXwallet SHALL treat any change in an agent's declared composition as
+openWallet SHALL treat any change in an agent's declared composition as
 the end of that agent's certified identity: its outstanding grants are
 revoked at once through the core's revocation-propagation rule, with no
 tolerance band and no grace period, and resuming requires re-issuance
@@ -49,7 +49,7 @@ prompt-v1 is not the same classifier's judgment.
 
 ### Requirement: Agent authority is grant scope, not a parallel vocabulary
 
-openXwallet SHALL express what an agent may do as the SCOPE of a
+openWallet SHALL express what an agent may do as the SCOPE of a
 capability grant, and SHALL admit the neutral job envelope's
 `approval_policy` values as legal scope terms, so that an agent's authority
 and a job's approval posture are stated in one vocabulary rather than two

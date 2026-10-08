@@ -4,7 +4,7 @@
 
 ### Requirement: Revocation propagates through the chain
 
-openXwallet SHALL make revocation effective through derivation: revoking a
+openWallet SHALL make revocation effective through derivation: revoking a
 grant revokes everything derived from it, and revoking a holder's standing
 revokes that holder's outstanding grants, in both cases without waiting for
 expiry. A capability consuming grants SHALL check revocation at exercise
@@ -33,7 +33,7 @@ terminal fact about that grant rather than a suspension of it.
 
 A propagation that leaves a holder with NO active standing SHALL be surfaced
 to the responsible human through the consuming capability's declared
-escalation path, and SHALL NOT be discharged by a log line alone. openXwallet
+escalation path, and SHALL NOT be discharged by a log line alone. openWallet
 states the obligation and names no mechanism: which packet, which channel and
 which human are the consuming capability's to declare.
 
