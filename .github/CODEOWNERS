@@ -1,0 +1,21 @@
+# openWallet-spec code owners.
+#
+# The floor is narrow on purpose, as openXwallet's is: the gate that decides
+# whether a delta in this leg is valid, the pin that decides WHICH OpenSpec CLI
+# that gate runs, the artifact the pin names, and the workflows that decide
+# whether the gate runs at all. A pull request that could change what runs
+# cannot clear itself.
+
+# The pinned CLI's verifier and installer, vendored byte-identical from
+# openxFactory. An edit here forks the estate's one pin verifier.
+/scripts/validate-openspec-cli-pin.py   @brettheap
+/scripts/install-pinned-openspec-cli.py   @brettheap
+
+# WHICH OpenSpec CLI, at WHICH digest, the gate must install.
+/contracts/   @brettheap
+
+# The pinned artifact itself. Its file name carries the pin's SHA-1.
+/tools/openspec-cli-pin/   @brettheap
+
+# Whether the gate runs, in what order, and under which status-check token.
+/.github/workflows/   @brettheap
