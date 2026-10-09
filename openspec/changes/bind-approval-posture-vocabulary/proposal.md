@@ -55,11 +55,18 @@ exactly one requirement:
     envelope's `approval_policy` values. D8 lists this scenario as "the
     bound vocabulary is reused, not duplicated". The promoted title stays
     because the pinned CLI matches scenarios by NAME and refuses a MODIFIED
-    block that drops one the promoted spec still has. That refusal was
-    measured, and is recorded in `design.md`, "What stays the same";
-  - *no binding is declared, so a posture is refused*: NEW. With no binding
-    declared, a grant naming any posture is refused, and the posture is not
-    admitted on the ground that nothing forbade it.
+    block that drops one the promoted spec still has, and because Brett
+    Heap ruled, in session, by multiple choice, 2026-10-09, "Keep the
+    promoted title, MODIFIED block (Recommended)". One other route yields
+    D8's name, a RENAMED, REMOVED and ADDED triple in one delta, at the
+    cost of D8's "MODIFIES exactly one requirement": the archive would
+    record the requirement as removed and re-added. The refusal, the
+    route and the ruling's history are recorded in `design.md`, "What
+    stays the same";
+  - *no binding is declared, so a posture is refused rather than admitted
+    because nothing forbade it*: NEW. With no binding declared, a grant
+    naming any posture is refused, and the posture is not admitted on the
+    ground that nothing forbade it.
 
 No capability is added or removed, and no requirement. Eleven promoted
 requirements remain eleven.
@@ -85,11 +92,13 @@ requirements remain eleven.
 
 ## Impact
 
-- **openXwallet: behaviour unchanged.** It binds the hermes envelope
+- **openXwallet: behaviour unchanged.** It will bind the hermes envelope
   unconditionally (D4): the node
   `properties.job.properties.approval_policy.properties` of its vendored,
-  digest-verified envelope, the node it reads today, with no flag a caller
-  can omit. Its legal terms are exactly the envelope's keys, as before.
+  digest-verified envelope, the node its validator reads today, with no
+  flag a caller can omit. Its legal terms will be exactly the envelope's
+  keys, as before. That binding is to be realized there by the packet's
+  group 5, task 5.2 (open at authoring), not by this change.
 - **A standalone consumer must declare a binding.** Without one, every
   posture its grants name is refused. A grant that names no posture is not
   touched by this requirement.

@@ -55,12 +55,19 @@ it.
       warning(s)`.
 - [x] 2.3 The refusal under no binding, OBSERVED at authoring. The code leg's
       validator at `72313da` ran over a scratch tree outside every checkout,
-      holding the five corpus grants as live records, with no binding
+      holding eight records as live records: the five corpus grants and the
+      three agent wallets they name (`wal-agent-poster-0001`,
+      `wal-agent-council-0011`, `wal-agent-creator-0002`), with no binding
       declared. It read `validate-openxwallet: 15 error(s), 0 warning(s)`.
       All fifteen are `authority-vocabulary-parallel`, three keys for each
-      of the five grants, each reporting `legal terms: []`. The corpus note
-      was unchanged. No code-leg test asserts this refusal today; the
-      packet's proof asserts it in its part three (its task 4.6).
+      of the five grants, each reporting `legal terms: []`. The wallets are
+      part of the measurement tree. With the five grants alone, the same
+      run reads `20 error(s)`: the same fifteen plus five
+      `custody-ceiling-unresolved`, one per grant, because the audience
+      wallet a grant names does not resolve and its ceiling cannot be
+      checked. The corpus note was unchanged. No code-leg test asserts this
+      refusal today; the packet's proof asserts it in its part three (its
+      task 4.6).
 
 Not here: openXwallet's envelope binding. It is the ADAPTER's, realized by
 the packet's group 5 in opensoft/openXwallet (task 5.2, open at authoring),
@@ -73,8 +80,10 @@ never by this change. This change's archive does not wait on it.
       --strict.
       Dry run at authoring, in a scratch copy of this leg and never in it:
       `Totals: + 0, ~ 1, - 0, → 0` on `openxwallet-agent-profile`, and the
-      promoted file changes in this one requirement only. It also archives
-      in either order with `add-composition-drift-cascade`, to the same
-      promoted text.
+      promoted file changes in this one requirement only; the CLI also
+      normalizes two blank lines around `## Requirements` in the file
+      header, one each side, content unchanged. It also archives in either
+      order with `add-composition-drift-cascade`, to the same promoted
+      text.
 - [ ] 3.2 Record the landing and the archive on opensoft/openXwallet#25 and
       tick task 4.8 of `split-openwallet-neutral-core` there.

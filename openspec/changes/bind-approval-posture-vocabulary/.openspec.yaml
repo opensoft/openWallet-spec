@@ -22,6 +22,23 @@ origin:
     one requirement. This change ENCODES that ratified substance in this
     leg's own instance and does not re-open it. The change itself is not
     ratified by its authoring, and it awaits ratification HERE, by
-    openWallet's operator authority.
+    openWallet's operator authority. One ruling on this change's own text,
+    the title of scenario two, was taken in session on 2026-10-09 by
+    multiple choice and is listed under `rulings`; it settles that title
+    and does not ratify the change.
+  rulings:
+    ruled_by: Brett Heap (openWallet operator authority)
+    rounds:
+      - recorded_at: "2026-10-09T00:30:00Z"
+        taken: in session, by multiple choice
+        questions:
+          - id: scenario-two-title
+            question: the title of scenario two in the delta
+            label: "Keep the promoted title, MODIFIED block (Recommended)"
+            against_recommendation: false
+            effect: >-
+              Scenario two keeps its promoted title in ONE MODIFIED block.
+              First ruled "Keep the promoted title (Recommended)" on an
+              incomplete premise; re-ruled once the other route was measured.
   approved_by: pending — held for Brett Heap (openWallet operator authority)
   approved_on: null

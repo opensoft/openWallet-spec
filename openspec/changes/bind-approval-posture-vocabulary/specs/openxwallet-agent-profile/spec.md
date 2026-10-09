@@ -24,7 +24,7 @@ refused.
 - THEN each key of that posture is a key of the one declared vocabulary binding, read from the binding at run time
 - AND a key the binding does not hold is a validation failure, whether it comes from a parallel authority vocabulary or from a copy of the vocabulary restated in openWallet
 
-#### Scenario: no binding is declared, so a posture is refused
+#### Scenario: no binding is declared, so a posture is refused rather than admitted because nothing forbade it
 
 - WHEN no vocabulary binding is declared and a grant names any approval posture
 - THEN the grant is refused

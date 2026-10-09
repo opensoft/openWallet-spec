@@ -83,7 +83,15 @@ refused."**: fail closed.
 - **Scenario two's title.** D8 lists this scenario as "the bound vocabulary
   is reused, not duplicated". The delta keeps the promoted title, *the
   approval vocabulary is reused, not duplicated*, and changes only its
-  bullets. The pinned CLI decides this. `@fission-ai/openspec@1.12.0`
+  bullets, inside ONE MODIFIED block. RULED by Brett Heap (openWallet
+  operator authority), in session, by multiple choice, 2026-10-09: "Keep
+  the promoted title, MODIFIED block (Recommended)". It was first ruled
+  the same day as "Keep the promoted title (Recommended)", on this
+  change's then-incomplete premise that the pinned CLI offered no other
+  route. The question was re-presented once the other route was measured,
+  and re-ruled with the label above.
+
+  The pinned CLI sets what is possible. `@fission-ai/openspec@1.12.0`
   compares a MODIFIED block's scenarios with the promoted requirement's BY
   NAME, and both `validate --strict` and `archive` refuse a block that drops
   one. Measured at authoring, in a scratch copy of this leg, with the title
@@ -93,14 +101,36 @@ refused."**: fail closed.
   ✗ [ERROR] openxwallet-agent-profile/spec.md: MODIFIED "Agent authority is grant scope, not a parallel vocabulary" omits scenario(s) the current spec still has: "the approval vocabulary is reused, not duplicated". Copy them into the MODIFIED block (a MODIFIED requirement replaces the whole block, so archive refuses to drop them).
   ```
 
-  `archive` refused the same scenario and printed "Aborted. No files were
-  changed." With the promoted title kept, both pass. 1.12.0 offers no other
-  route:
-  - a MODIFIED block cannot rename a scenario;
-  - REMOVED plus ADDED of one requirement in one delta is refused as a
-    conflict;
-  - a requirement RENAMED is checked against the block it was renamed from,
-    and this requirement's title must not move anyway.
+  `archive` refused the same scenario ("... current spec contains
+  scenario(s) not present in the modified block ...") and printed
+  "Aborted. No files were changed." With the promoted title kept, both
+  pass. Of the routes to D8's name, three fail and one works:
+  - a MODIFIED block cannot rename a scenario. It must carry every
+    scenario name the promoted requirement still has, as the block above
+    shows;
+  - REMOVED plus ADDED of one requirement in one delta is refused:
+    `Requirement present in both ADDED and REMOVED`;
+  - RENAMED plus MODIFIED is checked against the OLD scenarios:
+    `MODIFIED "Temp name" omits scenario(s) the current spec still has`.
+    The CLI's RENAMED construct exists for requirements only, and
+    scenarios are matched by name;
+  - ONE route yields D8's name. In ONE delta, `## RENAMED Requirements`
+    moves the requirement to a placeholder title, `## REMOVED Requirements`
+    removes the placeholder, and `## ADDED Requirements` adds the original
+    title with D8's scenario names. Measured in a scratch copy,
+    `validate --all --strict` read
+    `Totals: 4 passed, 0 failed (4 items)`, and `archive` read
+    `Totals: + 1, ~ 0, - 1, → 1` and `Specs updated successfully.` The
+    promoted spec then differed from the MODIFIED result in exactly one
+    line, the scenario-two title. It also archives in both orders with
+    `add-composition-drift-cascade` to byte-identical specs. The
+    requirement's position survives only because it is the last in the
+    spec.
+
+  That route is not taken, and its cost is why. It breaks D8's ratified
+  form, "MODIFIES exactly one requirement", and the archive records the
+  requirement as removed and re-added rather than modified. The ruling
+  above keeps the form and the promoted title.
 
   The scenario's SUBSTANCE is D8's: the posture's keys are the declared
   binding's, read at run time and never restated. Only its name is the
@@ -133,9 +163,13 @@ D4's three alternatives, for D4's reasons:
   binding is `contracts/openxwallet/examples/approval-vocabulary.binding.yaml`,
   pointer `approval_posture_terms`. The requirement states the obligation,
   not that shape.
-- **The adapter's own rules.** How openXwallet binds the envelope, verifies
-  its copy and exits when the file is absent belongs to openXwallet's
-  capability `openxwallet-factory-binding`, realized in that repository.
+- **The adapter's own rules.** How openXwallet will bind the envelope,
+  verify its copy and exit when the file is absent belongs to openXwallet's
+  capability `openxwallet-factory-binding`. That capability exists today
+  only as an ADDED delta in openXwallet's ratified packet, and the
+  envelope binding is to be realized there by the packet's group 5, task
+  5.2 (open at authoring). Neither is realized yet, and neither is this
+  change's to realize.
 - **Two prose residuals in the code leg, observed and not taken on:**
   - Rule (g)'s refusal message still says the key "is not an
     `approval_policy` property of the neutral job envelope (legal terms:
