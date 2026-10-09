@@ -1,0 +1,44 @@
+schema: spec-driven
+created: 2026-10-08
+origin:
+  kind: ruling
+  id: openXwallet:change:split-openwallet-neutral-core:D8
+  path: openspec/changes/split-openwallet-neutral-core/design.md
+  repo: opensoft/openXwallet
+  commit: bf2dd4db88edbb873d067425b16dacd3784fbaf5
+  reason: >-
+    openXwallet's `split-openwallet-neutral-core` DRAFTED this change's
+    successor text in its `design.md` D8 ("Spec movement") "so the
+    substance is ratified with this packet", and the packet was ratified:
+    Brett Heap (openXwallet operator authority), in session,
+    2026-10-08T17:10:47Z, verbatim "ratify 26 and merge" (ruling
+    https://github.com/opensoft/openXwallet/pull/26#issuecomment-6065121015;
+    `commit` is the merge of that pull request). The mechanism the text
+    states is RULED Q6, "Document plus pointer, fail closed (Recommended)",
+    taken by multiple choice in session on 2026-10-08 and recorded at
+    2026-10-08T16:30:50Z, and encoded in the packet's `design.md` D4 ("The
+    vocabulary binding"). D8 names this change: openWallet's own birth
+    change, authored in its spec leg's OpenSpec instance, MODIFIES exactly
+    one requirement. This change ENCODES that ratified substance in this
+    leg's own instance and does not re-open it. The change itself is not
+    ratified by its authoring, and it awaits ratification HERE, by
+    openWallet's operator authority. One ruling on this change's own text,
+    the title of scenario two, was taken in session on 2026-10-09 by
+    multiple choice and is listed under `rulings`; it settles that title
+    and does not ratify the change.
+  rulings:
+    ruled_by: Brett Heap (openWallet operator authority)
+    rounds:
+      - recorded_at: "2026-10-09T00:30:00Z"
+        taken: in session, by multiple choice
+        questions:
+          - id: scenario-two-title
+            question: the title of scenario two in the delta
+            label: "Keep the promoted title, MODIFIED block (Recommended)"
+            against_recommendation: false
+            effect: >-
+              Scenario two keeps its promoted title in ONE MODIFIED block.
+              First ruled "Keep the promoted title (Recommended)" on an
+              incomplete premise; re-ruled once the other route was measured.
+  approved_by: pending — held for Brett Heap (openWallet operator authority)
+  approved_on: null
