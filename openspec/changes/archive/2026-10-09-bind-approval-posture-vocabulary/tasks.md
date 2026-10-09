@@ -87,7 +87,7 @@ never by this change. This change's archive does not wait on it.
 
 ## 3. Archive gate
 
-- [ ] 3.1 After 1.2, archive with the pinned CLI (AGENTS.md rule 4), which
+- [x] 3.1 After 1.2, archive with the pinned CLI (AGENTS.md rule 4), which
       rewrites the promoted requirement in place; the gate green again at
       --strict.
       Dry run at authoring, in a scratch copy of this leg and never in it:
@@ -97,5 +97,32 @@ never by this change. This change's archive does not wait on it.
       header, one each side, content unchanged. It also archives in either
       order with `add-composition-drift-cascade`, to the same promoted
       text.
+      ARCHIVED, 2026-10-09, on Brett Heap's word "ratify it and archive it in
+      the spec leg" (2026-10-09T00:59:14Z), with the pinned
+      `@fission-ai/openspec@1.12.0` (`--version` read `1.12.0`): the binary
+      `scripts/install-pinned-openspec-cli.py` prints from the committed
+      tarball
+      `tools/openspec-cli-pin/fission-ai-openspec-1.12.0-c844543999f673cdd72445879b86a4abea4c07ef.tgz`
+      (AGENTS.md rule 4), run from this leg's root as `openspec archive
+      bind-approval-posture-vocabulary --yes`. It read
+      `openxwallet-agent-profile: update`, `~ 1 modified`,
+      `Totals: + 0, ~ 1, - 0, → 0`, `Specs updated successfully.`, and
+      `Change 'bind-approval-posture-vocabulary' archived as
+      '2026-10-09-bind-approval-posture-vocabulary'.` It counted 6/8 tasks
+      and continued under `--yes` on the two open boxes, this 3.1, ticked by
+      this record, and 3.2, which stays unticked on purpose: it is the
+      orchestrator's record on opensoft/openXwallet#25.
+      Checked rather than assumed: the five files of this change are
+      SHA-256-identical to the active change's at the ratification commit,
+      so the move edited nothing, and this note is the one edit made after
+      it. The promoted `openxwallet-agent-profile` requirement *Agent
+      authority is grant scope, not a parallel vocabulary* now carries D8's
+      statement and its three scenarios; the promoted file changed in that
+      one requirement only, plus the two normalized blank lines around
+      `## Requirements` the dry run predicted. `openxwallet` is unchanged,
+      and `add-composition-drift-cascade` is untouched.
+      The gate after the archive, AGENTS.md rule 4 command at --strict:
+      `Totals: 3 passed, 0 failed (3 items)` (two specs and the one remaining
+      active change), then `OK openspec-cli-pin`.
 - [ ] 3.2 Record the landing and the archive on opensoft/openXwallet#25 and
       tick task 4.8 of `split-openwallet-neutral-core` there.

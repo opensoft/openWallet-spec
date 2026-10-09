@@ -2,7 +2,9 @@
 
 ## Purpose
 The first profile over the neutral wallet core, covering holders of class AGENT, whose identity IS its declared composition. This capability owns what a composition must cover, what changing it revokes, and why the profile is a SIBLING family over the core rather than an extension of it — so patient and practitioner profiles arrive the same way.
+
 ## Requirements
+
 ### Requirement: An agent holder declares its composition
 
 openWallet SHALL require a wallet holder of class AGENT to declare the
@@ -49,11 +51,13 @@ prompt-v1 is not the same classifier's judgment.
 
 ### Requirement: Agent authority is grant scope, not a parallel vocabulary
 
-openWallet SHALL express what an agent may do as the SCOPE of a
-capability grant, and SHALL admit the neutral job envelope's
-`approval_policy` values as legal scope terms, so that an agent's authority
-and a job's approval posture are stated in one vocabulary rather than two
-that must be kept in agreement.
+openWallet SHALL express what an agent may do as the SCOPE of a capability
+grant, and SHALL admit as legal approval-posture terms exactly the keys of
+ONE DECLARED VOCABULARY BINDING supplied by the consuming layer and read at
+run time, never restated, so that an agent's authority and a job's approval
+posture are stated in one vocabulary rather than two kept in agreement.
+Absent a declared binding, a grant naming any approval posture SHALL be
+refused.
 
 #### Scenario: authority is carried by a grant
 
@@ -64,6 +68,11 @@ that must be kept in agreement.
 #### Scenario: the approval vocabulary is reused, not duplicated
 
 - WHEN a grant's scope names an approval posture
-- THEN it uses an existing `approval_policy` value
-- AND a parallel authority vocabulary is a validation failure
+- THEN each key of that posture is a key of the one declared vocabulary binding, read from the binding at run time
+- AND a key the binding does not hold is a validation failure, whether it comes from a parallel authority vocabulary or from a copy of the vocabulary restated in openWallet
 
+#### Scenario: no binding is declared, so a posture is refused rather than admitted because nothing forbade it
+
+- WHEN no vocabulary binding is declared and a grant names any approval posture
+- THEN the grant is refused
+- AND the posture is not admitted on the ground that nothing forbade it
