@@ -13,10 +13,22 @@ ruling first.
       `15c15bbd451a803f0acdb24e5234836db829a2d3` plus this change:
       `Totals: 4 passed, 0 failed (4 items)`, then `OK openspec-cli-pin`. No
       INFO, WARN or ERROR line names this change.
-- [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Ratify or return. Brett Heap (openWallet
+- [x] 1.2 **[OPERATOR] [GOVERNANCE]** Ratify or return. Brett Heap (openWallet
       operator authority).
-- [ ] 1.3 On ratification: `Status: ratified`, the `Ratified:` line with the
+      RATIFIED by Brett Heap, 2026-10-09T00:59:14Z, in session, verbatim
+      "ratify it and archive it in the spec leg". Ruling recorded on
+      opensoft/openXwallet#25:
+      https://github.com/opensoft/openXwallet/issues/25#issuecomment-6072085170.
+      Ratified as authored at opensoft/openWallet-spec#3 (merge `1506bbdb`,
+      head `5f95efdd`).
+- [x] 1.3 On ratification: `Status: ratified`, the `Ratified:` line with the
       word verbatim, `.openspec.yaml` `approved_by` / `approved_on` filled.
+      Filled, 2026-10-09: `proposal.md` carries `Status: ratified`, the
+      `Ratified:` line with the word verbatim, a rewritten `## Status` and a
+      `## Ratification record, 2026-10-09`; `.openspec.yaml` carries
+      `approved_by: Brett Heap (openWallet operator authority)` and
+      `approved_on: 2026-10-09`, with the ratification recorded as a further
+      ruling round. No delta byte changed.
 
 ## 2. Realization — already performed, recorded here
 

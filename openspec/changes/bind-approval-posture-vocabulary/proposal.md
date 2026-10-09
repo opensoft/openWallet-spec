@@ -1,12 +1,11 @@
 ---
 code_surface: ALREADY REALIZED, and no new surface is declared here. The behaviour this text states was realized in the code leg opensoft/openWallet-code by the carve's declared-edit layer under openXwallet's ratified `split-openwallet-neutral-core`, in opensoft/openWallet-code#2, merge `72313daab1f229c049cb90998931564c1904dbbc` (commit A, the pure carve, `32c933551b92d83122a45847215d5ebe92ae6740`; commit B, the declared edits, `75b990dc7ea99823626c18816b37d971f46e341b`; checks `wallet-validation` and `pytest-suite` completed success on `75b990dc`, 37 passed, 1 skipped). That realization is the validator hunks (a)-(e) in `scripts/validate-openxwallet.py`, of which (a) removes the envelope and (b) is the binding this text states, and the corpus binding `contracts/openxwallet/examples/approval-vocabulary.binding.yaml` (RULED Q6). This change performs nothing. Per `release-realization` it archives on that merged, green evidence once ratified.
 target_release: unallocated. This change moves no contract byte and no digest, and this leg carries no release identity. The release identity (the manifest, CHANGELOG, release records, proof and tag) is in the assembly root opensoft/openWallet, because the root is the one commit that names both legs (`AGENTS.md`). openWallet's first `wallet-v*` tag is task 4.9 of openXwallet's `split-openwallet-neutral-core`, an operator act. Nothing is reserved here.
-Status: proposed
-Ratified: pending — held for Brett Heap (openWallet operator authority). The
-  substance was ratified with openXwallet's `split-openwallet-neutral-core`
-  (`design.md` D8; "ratify 26 and merge", 2026-10-08T17:10:47Z). This
-  ENCODING of it is not ratified by its authoring, and only his word
-  ratifies it here.
+Status: ratified
+Ratified: 2026-10-09T00:59:14Z by Brett Heap (openWallet operator authority) —
+  in session, verbatim "ratify it and archive it in the spec leg"; ruling
+  recorded on opensoft/openXwallet#25 (comment 6072085170). Ratified as
+  authored at opensoft/openWallet-spec#3 (merge 1506bbdb…, head 5f95efdd…).
 ---
 
 # Proposal: bind-approval-posture-vocabulary
@@ -113,10 +112,17 @@ requirements remain eleven.
 
 ## Status
 
-`Status: proposed`. It is not ratified by its authoring. Brett Heap
-(openWallet operator authority) ratifies or returns it.
+`Status: ratified`. **Ratified by Brett Heap (openWallet operator
+authority), 2026-10-09T00:59:14Z**, in session, verbatim **"ratify it and
+archive it in the spec leg"**. The ruling is recorded on
+opensoft/openXwallet#25 at
+https://github.com/opensoft/openXwallet/issues/25#issuecomment-6072085170.
+See "## Ratification record, 2026-10-09" below. Until that word this
+ENCODING was not ratified by its authoring; the substance had been ratified
+with openXwallet's `split-openwallet-neutral-core` (`design.md` D8;
+"ratify 26 and merge", 2026-10-08T17:10:47Z).
 
-What ratification authorizes: the archive of this change in this leg, with
+What this ratification authorizes: the archive of this change in this leg, with
 the pinned CLI (`AGENTS.md` rule 4), which rewrites the promoted requirement
 in place. Nothing else. It authorizes no code, no release, no tag and no act
 in another repository.
@@ -132,3 +138,25 @@ opensoft/openWallet-spec#2 (merge
 `15c15bbd451a803f0acdb24e5234836db829a2d3`). The behaviour it states was
 realized in opensoft/openWallet-code#2 (merge
 `72313daab1f229c049cb90998931564c1904dbbc`).
+
+## Ratification record, 2026-10-09
+
+Ratified as authored, at the landed head. Brett Heap, openWallet operator
+authority, ruled in session: "ratify it and archive it in the spec leg"
+(2026-10-09T00:59:14Z; recorded on opensoft/openXwallet#25, comment
+6072085170). This change is ratified exactly as it landed at
+opensoft/openWallet-spec#3 (merge `1506bbdb4194a779bef63d8c4e5eecc7eac0bd68`,
+head `5f95efdd38bb177c1a8ccd94da1a1c9ef45faf3b`): the one MODIFIED
+requirement stands unamended, and no delta byte changes with the
+ratification.
+
+- The scenario-two ruling of the same day stands: Brett Heap, in session, by
+  multiple choice, 2026-10-09, "Keep the promoted title, MODIFIED block
+  (Recommended)" (`design.md`, "What stays the same"; `.openspec.yaml`,
+  `rulings`). The ratification does not re-open it.
+- The independent review and the gate results that stood at landing are
+  carried as they stood: the leg's gate read `Totals: 4 passed, 0 failed`,
+  and the dry archive, in a scratch copy and never in this leg, read
+  `Totals: + 0, ~ 1, - 0, → 0` on `openxwallet-agent-profile`.
+- What the ratification authorizes is the archive of this change in this
+  leg, with the pinned CLI (`AGENTS.md` rule 4), and nothing else.
