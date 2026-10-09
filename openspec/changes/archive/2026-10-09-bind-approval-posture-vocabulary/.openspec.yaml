@@ -40,5 +40,19 @@ origin:
               Scenario two keeps its promoted title in ONE MODIFIED block.
               First ruled "Keep the promoted title (Recommended)" on an
               incomplete premise; re-ruled once the other route was measured.
-  approved_by: pending — held for Brett Heap (openWallet operator authority)
-  approved_on: null
+      - recorded_at: "2026-10-09T00:59:14Z"
+        taken: "in session, recorded on opensoft/openXwallet#25"
+        questions:
+          - id: ratification
+            question: the change itself, as landed at opensoft/openWallet-spec#3
+              (merge 1506bbdb4194a779bef63d8c4e5eecc7eac0bd68, head
+              5f95efdd38bb177c1a8ccd94da1a1c9ef45faf3b)
+            label: "ratify it and archive it in the spec leg"
+            ruling: https://github.com/opensoft/openXwallet/issues/25#issuecomment-6072085170
+            effect: >-
+              Ratified as landed at opensoft/openWallet-spec#3, with no delta
+              byte changed. It authorizes the archive of this change in this
+              leg and nothing else: no code, no release, no tag and no act in
+              another repository.
+  approved_by: Brett Heap (openWallet operator authority)
+  approved_on: 2026-10-09
