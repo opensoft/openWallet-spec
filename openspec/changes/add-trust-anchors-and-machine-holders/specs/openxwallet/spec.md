@@ -18,10 +18,10 @@ unchanged. A declared key's declaration is APPEND-ONLY: retiring a key is a
 change to that key's declared state, never a deletion of its declaration,
 because an act already attributed to a key must remain readable after the key
 is retired. A MACHINE is a computer that holds keys in its own right — the
-service keys its operating system presents, such as the host key each of its
-SSH daemons answers with — and it declares them as every holder does, each
-with its own custody model from the same closed set, which gains no member for
-it. A public key of ANOTHER holder that a wallet keeps in order to verify that
+service credentials its operating system presents, such as the host key each of
+its SSH daemons answers with or a client certificate it authenticates to a
+resource with — and it declares them as every holder does, each with its own
+custody model from the same closed set, which gains no member for it. A public key of ANOTHER holder that a wallet keeps in order to verify that
 holder is not declared by the wallet at all: it is a trust anchor the wallet
 holds, outside its declared key set.
 
@@ -78,6 +78,70 @@ holds, outside its declared key set.
 - AND a signature by that key evidences the ENVIRONMENT, under the ceiling that
   member caps, exactly as the same custody would for any other holder
 - AND the closed custody set gains no member for machines
+
+#### Scenario: a machine declares a service credential that is not a host key
+
+- WHEN a machine authenticates to a resource with a client certificate
+- THEN the certificate's key is a declared key of the machine's wallet, beside
+  its host keys, with its own custody model and its own fingerprint
+- AND a certificate whose private key the operating system holds
+  non-exportable in a hardware-backed store, and may invoke at will, is
+  `isolated_invocable`, while the same certificate held as a file the
+  machine's execution context can read is `holder_readable`
+- AND the address of the resource the credential reaches is not a key and is
+  not declared
+
+### Requirement: Authority travels as attenuated grants, never as keys
+
+openWallet SHALL express every authority a wallet confers as a capability
+GRANT rather than as access to the key itself, because a raw key can be
+neither expired nor revoked and a shared key destroys attribution. A grant
+names its audience, its scope, and its expiry; derivation from a grant is
+MONOTONICALLY NARROWING, so a derived grant may reduce scope or lifetime
+and may never widen either. A grant's audience is a wallet of any holder
+class, a MACHINE's included: authority for a computer to reach a resource is a
+grant addressed to that machine's wallet, never a credential handed to whatever
+runs on it. Where a grant confines its acts to a particular resource outside
+this capability, it names that resource among its objects, and the resource's
+own access control is the grant's REALIZATION — the enforcement that makes it
+live — while the grant is the auditable, attenuable statement of what that
+enforcement permits, to whom, and until when. The enforcement's configuration
+is the record of whoever administers the resource and SHALL NOT become a field
+of the audience's wallet, and the resource's identifier SHALL NOT become the
+holder's identifier, nor the holder's identifier the resource's.
+
+#### Scenario: a raw key is never the unit of access
+
+- WHEN a holder authorises another party to act
+- THEN a grant is issued naming audience, scope and expiry
+- AND handing over the key itself is refused as unrepresentable
+
+#### Scenario: attenuation only narrows
+
+- WHEN a grant is derived from a parent grant
+- THEN its scope and lifetime are within the parent's
+- AND a derived grant exceeding its parent in either is invalid
+
+#### Scenario: a machine wallet is the audience of a resource grant
+
+- WHEN a tenant permits a machine to read one mailbox
+- THEN a grant addressed to the machine's wallet names that mailbox among its
+  objects and the read act in its scope, with an expiry
+- AND the mailbox's own access control enforces the grant, and that
+  enforcement is recorded by the mailbox's administrator, never in the
+  machine's wallet
+- AND the mailbox's identifier is not the holder's identifier, and a grant
+  whose audience names the mailbox rather than a wallet is refused
+
+#### Scenario: a custodian's reads are key-attributed exercises
+
+- WHEN a service on the machine reads the mailbox under that grant
+- THEN each exercise names as its presenting key the machine's declared
+  service credential, and records that key's custody as the model in force
+- AND the service credential is never handed to the processes the service
+  serves
+- AND an agent the service hands mail to presents nothing in that exercise and
+  is not recorded as its actor
 
 ### Requirement: The capability is an authority control, never an identity substrate
 
