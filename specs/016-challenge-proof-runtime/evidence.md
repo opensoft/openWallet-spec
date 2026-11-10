@@ -11,7 +11,7 @@ Code candidate: [PR](https://github.com/opensoft/openWallet-code/pull/4), source
 ## Local verification
 
 - Code-leg full pytest: **88 passed, 1 skipped**, 99.03 seconds. This includes 51 new proof cases and 37 existing cases. The existing historical comparison skips because no git blob for a different previous validator is reachable; it is not a new skip or a signature qualification result.
-- Spec-leg structural pytest: **1 passed**. Structural fixtures, including zero-byte-shaped signature strings, do not assert cryptographic validity.
+- Spec-leg structural pytest after review corrections: **5 passed**, in a fresh isolated environment installed solely from the eleven local hash-locked wheels. Structural fixtures, including zero-byte-shaped signature strings, do not assert cryptographic validity.
 - Pinned OpenSpec CLI 1.12.0: **5 targets passed, 0 failed**, strict clean. Tarball SHA-512/SHA-1 verified before installation. npm dependency setup still resolves from the registry.
 - Scoped strict origin validation from the parent's pinned proposal helper at `93d13d6c8e14008c0b66adea65756d106fef6227`: no origin errors.
 - Syntax gate and both plain/strict legacy validators passed: 21 positive examples, 42 negative confirmations, 11/11 requirement coverage, zero errors/warnings. Repository scan: zero live wallet artifacts; this is corpus validation, not live acceptance.
@@ -24,6 +24,8 @@ An isolated development cross-product check also exercised actual wallet math in
 The pinned CLI's generic `instructions apply` diagnostic reports no embedded OpenSpec checklist. This is the shared workflow's deliberate Speckit handoff: [tasks.md](tasks.md) is the sole executable list. Planning/validation success does not archive the proposal or imply completed realization.
 
 ## CI, review and remaining acceptance
+
+Review corrections: the structural gate now installs a complete SHA-256-locked wheel closure locally with index/version checks disabled. Exact field lengths reject terminal LF/CRLF in digests, signatures; the new fixtures cover both endings. This introduces no offline-gate exception and changes no runtime proof behavior.
 
 CI hardening: the structural-test workflow now permits binary dependencies only. This fixes Sonar rule `githubactions:S8541` found on wallet spec PR #8; the same scoped workflow change is applied here. A no-install resolution check confirmed wheel availability for the declared Python 3.12 dependency closure. No gate, rule or exception is weakened.
 

@@ -33,3 +33,10 @@ def test_exact_fields_and_fixed_profile():
                     dict(value,alg="none"),dict(value,signature="A"*85+"B"),
                     dict(value,binding_revision=-1)]:
         rejects(validator,changed)
+
+@pytest.mark.parametrize("field",["signature","challenge_digest"])
+@pytest.mark.parametrize("suffix",["\n","\r\n"])
+def test_fixed_width_fields_reject_trailing_newlines(field,suffix):
+    value=example()
+    value[field]+=suffix
+    rejects(read("challenge-proof-v0.schema.json"),value)

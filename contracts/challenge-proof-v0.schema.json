@@ -24,7 +24,9 @@
     },
     "challenge_digest": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "minLength": 71,
+      "maxLength": 71
     },
     "binding_revision": {
       "type": "integer",
@@ -63,7 +65,9 @@
     },
     "signature": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{85}[AQgw]$"
+      "pattern": "^[A-Za-z0-9_-]{85}[AQgw]$",
+      "minLength": 86,
+      "maxLength": 86
     }
   }
 }
