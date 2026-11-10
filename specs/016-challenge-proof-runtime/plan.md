@@ -32,4 +32,16 @@ The sole executable list is [tasks.md](tasks.md). Capture governance and schema 
 
 ## Analysis
 
+### Continuing prerequisite preparation
+
+T007 adds independently produced known-answer vectors before T006. The Node.js
+generator uses built-in crypto/OpenSSL and a deliberately bounded canonicalizer
+for the profile's strings, safe integers, arrays, objects and null. It imports
+neither the Python implementation nor its canonicalizer. Committed public test
+seeds, canonical preimages, public keys and signatures make reproduction
+auditable. Python tests compare exact generated proofs, wire bytes and refusal
+cases against the fixed vectors. No runtime dependency, wire contract, custody
+claim or approval requirement changes. Node is a maintainer reproduction tool;
+the ordinary Python gate consumes static vectors and requires no Node runtime.
+
 FR subjects map one-to-one to the capability requirements. Code tests cover each subject and critical negative/race paths; schema tests cover structure only. Synthetic state-test factors cannot clear real adapter acceptance. No unresolved clarification is delegated to code; future integration gates are explicit exclusions.
