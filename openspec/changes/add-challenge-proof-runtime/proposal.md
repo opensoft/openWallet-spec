@@ -1,5 +1,6 @@
 ---
-Status: draft
+Status: ratified
+Ratified: 2026-11-10 by Brett Heap for the possession-only wire profile; see review/ratification-2026-11-10.md for the approved baseline and limits.
 code_surface: Offline Ed25519 possession proof over an authenticated challenge digest with current server-resolved key binding and opaque signing custody.
 target_release: unallocated; no product version or release tag is reserved here.
 ---
@@ -10,7 +11,7 @@ target_release: unallocated; no product version or release tag is reserved here.
 
 The existing design capture does not provide a cryptographic runtime. Offline Ed25519 possession proof over an authenticated challenge digest with current server-resolved key binding and opaque signing custody.
 
-Brett Heap commissioned this upstream prerequisite after ratifying [codeXfactory PR #577](https://github.com/codeXfactory/codexFactory/pull/577), merged at `03d0fd28719ad8756dc3b533aa91f2b0ef5397e7`. That commission authorizes preparing a reviewable candidate. This new packet and wire profile remain draft; the parent approval does not manufacture local contract ratification.
+Brett Heap commissioned this upstream prerequisite after ratifying [codeXfactory PR #577](https://github.com/codeXfactory/codexFactory/pull/577), merged at `03d0fd28719ad8756dc3b533aa91f2b0ef5397e7`. That commission authorized candidate preparation. On 2026-11-10 he separately ratified this possession-only wire profile at `778cedb30406e753fee5b4a95d96ac2c18b78ae4`; the [owner record](review/ratification-2026-11-10.md) preserves the exact response, schema digests and exclusions. Runtime realization, custody/factor acceptance, human approval and live qualification remain separate gates.
 
 ## What Changes
 

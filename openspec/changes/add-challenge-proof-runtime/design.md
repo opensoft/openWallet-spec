@@ -1,6 +1,10 @@
 # Candidate design
 
-Status: draft
+Status: possession-only wire profile ratified; runtime acceptance pending
+
+Owner ratification binds the baseline and scope in
+[review/ratification-2026-11-10.md](review/ratification-2026-11-10.md).
+This records no real custody, factor-adapter, human or live qualification.
 
 ## Context and scope
 

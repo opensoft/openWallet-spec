@@ -1,6 +1,6 @@
 # Tasks: 016-challenge-proof-runtime
 
-Status: draft implementation; new contract not ratified
+Status: possession-only wire profile ratified; implementation/operational acceptance pending
 
 - [x] T001 [S] Capture commissioned scope, draft origin and governance; files: openspec/changes/add-challenge-proof-runtime/**, specs/016-challenge-proof-runtime/**; verify: source and boundaries named before code.
 - [x] T002 [O] Define exact-field draft wire contracts in the spec leg and structural checks; files: contracts/*-v0.schema.json, tests/runtime_contracts/**; verify: schema positives and negatives.
@@ -12,4 +12,4 @@ Status: draft implementation; new contract not ratified
 
 No other executable task list is created in the OpenSpec packet. No parallel-agent execution is required. Archive only after assembly advancement and actual acceptance.
 
-T007 precedes T006. All current verification remains offline. The existing owner-acceptance checklist item applies to landing/qualification and remains open; candidate vector preparation does not clear it.
+T007 precedes T006. All current verification remains offline. Brett Heap completed T006's wire-contract owner decision on 2026-11-10: "Ratify both possession-only profiles", approving `778cedb30406e753fee5b4a95d96ac2c18b78ae4`. The governing proposal's `review/ratification-2026-11-10.md` binds the exact schema bytes and scope. T006 remains unchecked because reviewed realization/leg landings, root advancement and real adapter/custody/compatibility acceptance remain separate outstanding gates. No release or live qualification is inferred.
