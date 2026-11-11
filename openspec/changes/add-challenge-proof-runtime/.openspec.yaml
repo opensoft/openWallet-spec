@@ -1,0 +1,15 @@
+schema: spec-driven
+created: 2026-11-10
+origin:
+  kind: ad_hoc
+  id: openWallet:adhoc:2026-11-10-add-challenge-proof-runtime
+  reason: Start the neutral runtime prerequisite commissioned after codeXfactory PR 577.
+  approved_by: Brett Heap, direct 2026-11-10 instruction to start upstream runtime prerequisites; candidate preparation and implementation, not ratification of this new wire contract.
+  approved_on: 2026-11-10
+  ratified_by: >-
+    Brett Heap, first-hand in this chat: "Ratify both possession-only profiles".
+    This ratifies the wire contract scope at openWallet-spec PR #8,
+    baseline 778cedb30406e753fee5b4a95d96ac2c18b78ae4. Real custody, factor adapters,
+    human approval and live qualification remain separate gates.
+    See review/ratification-2026-11-10.md. Original commissioning metadata is preserved.
+  ratified_on: 2026-11-10

@@ -1,0 +1,17 @@
+name: runtime-contracts
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  runtime-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: 'pip --disable-pip-version-check install --no-index --only-binary :all: --find-links tools/structural-test-wheels --require-hashes -r contracts/structural-test-requirements.txt'
+      - run: python -m pytest tests/runtime_contracts -q
