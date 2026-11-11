@@ -17,6 +17,15 @@ gap, D2 the first, and D3 to D5 the third. D6 and D7 are non-normative and
 record the issuer's side and the worked SSH mapping. D8 to D11 settle the
 mechanics the first five leave open.
 
+The same day's continuation of the discussion added a second worked case.
+Brett asked whether Eagle could get a mailbox, `eagle@opensoft.dev`, that agents
+running on Eagle could read, and whether that belongs in Eagle's wallet. D12
+answers it: the AUTHORITY is a grant addressed to Eagle's machine wallet, the
+CREDENTIAL that presents it is a key Eagle declares, and the ENFORCEMENT is the
+mailbox's own access control. D1 is generalized from host keys to service
+credentials, D7 gains the Microsoft Graph mapping, and D11 gains the mail
+grant's non-goals and successors. That amendment is not ruled either.
+
 ## D1 — A computer is a holder: `machine` joins the closed holder-class set
 
 The closed set becomes `person | practitioner | organisation | agent |
@@ -40,6 +49,25 @@ booleans, and both can be answered for a machine key without interpretation:
 
 The member descriptions already cover both: "a readable file" and "an OS
 keystore". So the closed set is closed here too, and no member is added.
+
+**A machine's declared keys are its SERVICE CREDENTIALS, and host keys are only
+the first case.** A credential the machine's operating system presents to a
+resource on the machine's own behalf is a key the machine holds, so it is
+declared like the host keys, with the multi-key shape unchanged. The second
+case is the mail grant's (D12). Eagle authenticates to Microsoft Graph with a
+client certificate, and that certificate's key is Eagle's THIRD declared key,
+a `keys:` entry beside the two sshd host keys. Its custody is read off the same
+two booleans:
+
+| the certificate's private key | readable by the holder's execution context | per-use authorization outside it | member | evidences | ceiling |
+|---|---|---|---|---|---|
+| non-exportable in the local machine certificate store, under the TPM-backed platform crypto provider, usable by the OS at will | no | no | `isolated_invocable` | environment | `act` |
+| a certificate file (PFX or PEM) the machine's execution context can read | yes | no | `holder_readable` | environment | `act` |
+
+Either way the signature evidences the ENVIRONMENT, and that is the honest
+reading: when mail is read, Eagle acts, not a person. The resource the
+credential reaches is not declared, and neither is the resource's own record of
+the credential (D12).
 
 **"A machine never evidences a HOLDER acting", stated as a computation and not
 as a class rule.** The registry derives `evidences` from the two booleans and
@@ -457,6 +485,46 @@ absent from verification (D3, D4).
 and host certificates for 30 days by default, configurable per provisioner. The
 16-hour window is the primary user-side revocation mechanism (D3).
 
+**Mail: `eagle@opensoft.dev` through Microsoft Graph.** The second worked
+mapping, for the grant D12 designs. `opensoft.dev` and `opensoft.one` both
+route mail through Exchange Online (Microsoft 365). Product details are as of
+2026-10-16.
+
+| the standard | Microsoft 365, Entra ID and Graph |
+|---|---|
+| the resource the grant reaches | a SHARED mailbox, `eagle@opensoft.dev`, in Exchange Online: no sign-in and no password, so nothing to leak |
+| holder class `machine`; the declared service credential is Eagle's third key, `isolated_invocable` (D1) | a client certificate in Eagle's local machine store (`Cert:\LocalMachine\My`), its private key non-exportable under the Microsoft Platform Crypto Provider (the TPM) |
+| the presenter, as the resource knows it | an Entra app registration and its service principal, with the certificate as its only credential and no client secret |
+| the public half the RESOURCE holds to verify the presenter — what a peer anchor is, on the resource's side | the certificate's public half uploaded to the app registration's key credentials. It is the tenant's Entra record, neither a wallet field nor an openWallet anchor (D6, D12) |
+| the grant: an `xfactory_wallet_grant` whose audience is Eagle's wallet, act the read, object the mailbox, a tier within the wallet's ceiling, `expires_at`, `issued_by` the tenant's operator | a record in the tenant's own tree. Neither Entra nor Exchange holds it: it is the auditable, attenuable statement of what the next row enforces (D12) |
+| the grant's REALIZATION, its live enforcement | the APPLICATION permission `Mail.Read` alone (no `Mail.ReadWrite`, no `Mail.Send`) with admin consent, PLUS an Exchange application access policy (`New-ApplicationAccessPolicy … -AccessRight RestrictAccess`) restricting the app to a mail-enabled security group whose only member is the mailbox. Without the policy, application `Mail.Read` reads EVERY mailbox in the tenant |
+| the credential's hard limits (D4) | the permission itself: `Mail.Read` can neither change, delete nor send |
+| the grant's expiry | mirrored by nothing exactly. The nearest is the key credential's end date, which is the certificate's validity. Keeping the two aligned is the tenant's practice, and neither side checks it |
+| proof of possession (core "Use requires proof of possession, not presentation") | the CLIENT ASSERTION: a JWT signed with the certificate's key (`alg` `PS256`, header `x5t#S256`) and sent to Entra's token endpoint. Graph requests then carry the ACCESS TOKEN it buys, a bearer credential living 60 to 90 minutes by default. That token is transport, not a per-request signature by the wallet key (D12) |
+| the key-attributed exercise | an `xfactory_wallet_grant_exercise` per signed client assertion, presented by the certificate's key, with `custody_model_in_force: isolated_invocable` (D12, Open question 13) |
+| revocation, checked at use (D3) | removing the group membership, the consent or the key credential stops NEW tokens. A token already issued runs to its own expiry, and Exchange's own authorization cache adds lag, so the token's short life is the primary bound, as the 16-hour certificate is for SSH |
+| the agents on Eagle | absent from Entra and Exchange altogether: the custodian serves them locally (D12, Open question 10) |
+
+**One product nuance belongs in the record, not in a footnote.** Microsoft's
+Exchange Online documentation for Role Based Access Control for Applications
+(Microsoft Learn, updated 2026-08-21) says that feature "replaces Application
+Access Policies". It also says that permissions consented in Entra ID "can only
+be constrained using Application Access Policies". The two realize the same
+grant, but they fail in opposite directions.
+
+- **Under an access policy**, the tenant-wide `Mail.Read` consent exists and
+  the policy narrows it. Deleting the policy therefore WIDENS the app to every
+  mailbox.
+- **Under RBAC for Applications**, the app holds no Entra `Mail.Read` consent.
+  An `Application Mail.Read` role assignment, scoped to a management scope or
+  an administrative unit, admits the one mailbox, and deleting the assignment
+  leaves the app with nothing. But Exchange UNIONS that assignment with any
+  Entra consent, so an Entra `Mail.Read` added later silently removes the
+  scoping.
+
+The session agreed the access policy. Either one is the grant's realization and
+leaves D12 unchanged, and which one the tenant uses is Open question 14.
+
 ## D8 — Fingerprints: one spelling in records, the compared spelling in provenance
 
 Three fingerprints meet in this deployment, over three different byte strings:
@@ -467,6 +535,18 @@ Three fingerprints meet in this deployment, over three different byte strings:
   key's SSH wire-format blob;
 - `step ca bootstrap --fingerprint`: hex SHA-256 over the root's DER
   certificate.
+
+The mail grant (D12) meets two more. Both are computed over a CERTIFICATE's DER
+encoding, not over a key:
+
+- the thumbprint that the Windows certificate store and the Microsoft Entra
+  admin center display, which is SHA-1;
+- the client assertion's `x5t#S256`, which is base64url SHA-256.
+
+Neither is a `key_fingerprint`. Both are the store's locator and the issuer's
+record, so neither enters the wallet. The certificate's key is RSA, and the
+family has not pinned the raw encoding for RSA, so that key's `key_fingerprint`
+is honest rather than checked.
 
 A record that copied one of these into another's field would carry a
 fingerprint that never recomputes. So an anchored key's `key_fingerprint` is
@@ -502,7 +582,11 @@ requirement:
 - **"A composition change revokes the agent's grants immediately"** is about
   agents' grants and untouched.
 - **"Agent authority is grant scope, not a parallel vocabulary"** is the rule
-  D4 restates from the resource's side, and it is consistent as written.
+  D4 restates from the resource's side, and it is consistent as written. D12's
+  agents question (Open question 10) reads the same requirement, and neither
+  option needs a profile delta. Option (a) is grant scope by construction.
+  Option (b) records no agent authority at all, and D12 states the cost of
+  that reading.
 
 So no `openxwallet-agent-profile` delta. A MACHINE profile (hardware
 attestation, enrolment evidence, TPM inventory) would be a sibling capability
@@ -523,13 +607,17 @@ successor gated on a consumer of its own (D11).
   own comments carry is corrected with it.
 - No other digested byte moves. The custody registry and its schema, the grant,
   the exercise, the distinct-holder constraint, the subject attestation and the
-  agent composition are to be PROVEN unchanged by recomputation.
+  agent composition are to be PROVEN unchanged by recomputation. The mail
+  grant (D12) changes none of this. It adds corpus content only, and the
+  corpus is content-addressed by commit, with no per-file digest.
 - No finding code is renamed, repurposed or reclassified, and there is no new
   WARNING. The new codes are ERRORs, and the honest-not-checked cases are
   NOTES.
 - `REQUIREMENTS` gains four rows, one per ADDED requirement (proposed
   `OXW-R9` to `OXW-R12`, in the delta's order), each with at least one negative
-  confirmation, so that requirement closure stays two-directional.
+  confirmation, so that requirement closure stays two-directional. The three
+  MODIFIED requirements keep their rows, `OXW-R1`, `OXW-R2` and `OXW-R8`,
+  because MODIFIED keeps the subject.
 
 MINOR and not MAJOR, because nothing a consumer declares today becomes invalid.
 
@@ -574,6 +662,288 @@ Each of these is OUT for a reason, not by omission:
     reason-classed cascade is the anchor analogue of
     `add-composition-drift-cascade`, and it waits for a consumer.
 
+The mail grant (D12) adds eight items. Items 12 and 13 are non-goals, and
+items 14 to 19 are named successors, not taken here:
+
+12. **`Mail.Send`**, and every other write or send permission on the mailbox.
+    The realization grants `Mail.Read` alone, and the grant confers the read
+    alone. Sending as Eagle is a separate decision with its own grant. The
+    injection hazard D12 records is the reason it is not folded into this one.
+13. **Per-agent authentication at the custodian.** How the custodian
+    authenticates the processes it serves is the consumer's runtime. Option (a)
+    of Open question 10 needs it, and under option (b) it is the only thing
+    between the mailbox and everything that runs as Eagle's local user.
+14. **The mailbox as a subject, with an attestation record.** A mailbox record
+    MAY carry Eagle's wallet reference as ATTESTATION, and
+    `xfactory_wallet_subject_attestation` already provides the shape:
+    `subject_ref` is the mailbox's own identifier, `reference_role` is
+    `attestation`, and resolution goes through `subject_ref`. It is named here
+    and not built, with no corpus example and no requirement.
+15. **An object grammar that admits a mail address.** The family's
+    `identifier` grammar excludes `@`, so `eagle@opensoft.dev` cannot appear
+    verbatim in `scope.objects` or `object_ref` (D12). Admitting it would move
+    two contracts' bytes, so it is not a one-line additive matter.
+16. **Binding an exercise's `object_ref` to its grant's `scope.objects`.** Rule
+    (r) checks the act and not the object, so an exercise naming another
+    mailbox under this grant validates today (D12). The check would refuse
+    records that validate now, which is a release-class question of its own.
+17. **Object containment in attenuation.** `scope.objects` narrowing is set
+    membership over opaque identifiers, so a derived grant cannot narrow a
+    mailbox to one of its folders (D12).
+18. **RSASSA-PSS in the closed signature-algorithm sets.** Entra signs client
+    assertions with `PS256`. The record's `rsa-*-sha256` members mean PKCS#1
+    v1.5, and the exercise's proof block has no RSA member, so the field is
+    omitted in both places for the certificate's key (D12).
+19. **A confidentiality axis on the authority ladder.** The ladder ranks what
+    an act EFFECTS, and a read effects nothing. Ranking disclosure would change
+    the custody registry, which this change does not touch (item 1, Open
+    question 12).
+
+## D12 — A machine wallet is a grant audience like any holder: the mailbox case
+
+The question, from the same day's continuation: could Eagle get a mailbox,
+`eagle@opensoft.dev`, that agents running on Eagle can read, and does it belong
+in Eagle's wallet? The facts are in D7's Graph mapping. The answer:
+
+- the AUTHORITY belongs to Eagle's wallet, as a grant addressed to it;
+- the CREDENTIAL that presents it is a key Eagle declares (D1);
+- everything else stays where it already lives.
+
+**The grant, at the level the requirement binds.** "Eagle may read mailbox
+`eagle@opensoft.dev`" is one `xfactory_wallet_grant`. The spellings are
+proposed below, after the expressibility check.
+
+| field | value | why |
+|---|---|---|
+| `audience.wallet_ref` | Eagle's machine wallet | a grant is addressed to a holder's wallet, never to a key and never to the mailbox |
+| `audience.holder_ref` | Eagle's own holder identifier | OPTIONAL, and never the mailbox's identifier (the non-substrate rule) |
+| `scope.acts` | the read act, alone | no write, no delete, no send (D11.12) |
+| `scope.objects` | the one mailbox | the narrowing the access policy enforces |
+| `scope.authority_tier` | `attest`, proposed | within the wallet's ceiling, `act` (Open question 12) |
+| `scope.approval_posture` | ABSENT | optional in the schema, and refused key by key in a repo scan that binds no vocabulary |
+| `expires_at` | a date | REQUIRED: the grant expires even where its realization does not |
+| `issued_by` | the tenant's operator | `issued_by`'s own grammar admits an operator's e-mail address |
+| `state` | `active` | |
+
+**The realization is the resource's, and its record is the administrator's.**
+Three things are the grant's live ENFORCEMENT:
+
+- the Entra app registration;
+- its admin-consented `Mail.Read`;
+- the Exchange access policy that restricts it to the one mailbox.
+
+They are records the tenant keeps in Entra and Exchange, exactly as a host
+certificate is the CA's record and not a wallet field (D6). The wallet gains no
+field for them.
+
+The grant adds what the enforcement cannot say about itself:
+
+- **It is AUDITABLE.** One record says what is permitted, to whom, by whose
+  decision and until when.
+- **It is ATTENUABLE.** A narrower grant can be derived from it (Open question
+  10).
+
+The two can disagree. If the policy is deleted, for instance, the app now reads
+every mailbox. The grant is then the statement of intent, and the enforcement
+is what is wrong. Detecting that drift needs a call to the tenant, so it is the
+tenant's audit and never this leg's offline validator's.
+
+**The custodian's reads are key-attributed exercises.** A small custodian
+service on Eagle holds the certificate and reads mail through Graph. Each
+exercise it records does three things:
+
+- **It names the certificate's key as `presenting_key_ref`**, in both the proof
+  block and the attribution block. Rule (r) resolves that key to Eagle's
+  wallet through the declared key set.
+- **It records `custody_model_in_force: isolated_invocable`**, or
+  `holder_readable` for a file-held certificate. That is the custody of THE KEY
+  THAT SIGNED, not the wallet's primary custody, which is `holder_readable`
+  for the Windows OpenSSH host key. A record carrying the primary's custody is
+  refused under the existing `custody-model-mismatch`.
+- **It records `verified: true`**, because Entra's token endpoint accepted the
+  signed client assertion.
+
+What that signature covers has to be stated exactly. The certificate's key
+signs the CLIENT ASSERTION, and the assertion buys an access token. The Graph
+reads that follow carry that token as a bearer credential. So the wallet key
+signs one request per token, not every read.
+
+This design therefore proposes ONE exercise per signed client assertion, which
+is one polling session. Its `signed_over` is `request`, and the request is the
+token request. A record per read that claimed a verified wallet-key signature
+would claim evidence that does not exist. Per-read accounting is still
+possible, as the custodian's own log citing the session's exercise (Open
+question 13).
+
+The custodian hands mail to agents in ATTENUATED form, as DATA: files in a
+directory, or a localhost MCP server exposing list and read tools. Agents never
+hold the certificate. An agent the custodian serves presents nothing in the
+custodian's exercise.
+
+**What stays out of the wallet, and why.**
+
+1. **The e-mail address.** It identifies a mailbox in Exchange's domain, and it
+   is not a key. The wallet's holder identifier is Eagle's own, and the
+   non-substrate rule says neither stands in for the other. At most, the
+   mailbox's record carries a wallet reference as ATTESTATION, the shape the
+   subject-attestation kind already provides (D11.14).
+2. **The key material.** The private half is in the TPM. The record references
+   the key by fingerprint and custody, as it references every declared key.
+3. **The Entra app registration and the access policy.** They are the ISSUER's
+   records, as a host certificate is the CA's. So is the certificate's
+   thumbprint, which is the store's locator and Entra's key-credential
+   identity (D8).
+
+**The agents: NOT ruled.** How agents on Eagle get access is Open question 10,
+and both options are recorded.
+
+- **(a) Derived grants to the agents' own wallets.** Each derived grant is
+  monotonically narrower than Eagle's: the read only, a shorter expiry, and
+  fewer objects where that can be expressed. The agent exercises it with its
+  own key, presented to the custodian. The custodian decides as a class-blind
+  verifier (D4), so every request for mail is attributed to the agent that
+  made it, while the Graph read stays Eagle's exercise. Revoking Eagle's grant
+  revokes every derived grant through the chain.
+  - It needs the custodian to authenticate agents, which this change leaves to
+    the consumer (D11.13).
+  - Narrowing to ONE FOLDER is not expressible today (D11.17).
+- **(b) The custodian serves mail to processes in Eagle's environment with no
+  per-agent grant.** Access is then Eagle's environment acting. The agents are
+  indistinguishable in the record, and every read is Eagle's.
+  - This sits beside the agent profile's scenario "authority is carried by a
+    grant" ("no authority exists for that agent outside a grant") only on one
+    reading: the agents hold no authority, and merely consume data that
+    Eagle's environment fetched.
+  - A process that IS a wallet holder of class `agent` would then have access
+    to the mailbox outside any grant it holds. That is exactly what the
+    scenario says does not exist, so option (b) suits processes that are not
+    modelled as holders.
+
+The tenant's SSH ruling that its CA issues no agent credentials covers the CA
+only (D4) and does not decide this.
+
+**Cautions, recorded because they are real.**
+
+- **Everything running as the local user on Eagle can reach what the custodian
+  exposes**, unless the custodian authenticates its callers. Under option (b)
+  that is the whole of the access control.
+- **Inbound mail is untrusted input.** Anyone can write to the address, so a
+  message can carry a prompt-injection payload. The custodian presents mail as
+  DATA and never as instructions. Policy must say what an agent may do in
+  response, and anything effecting needs its own grant at its own tier.
+- **`Mail.Send` is excluded.** It is a separate decision (D11.12).
+
+**Timing.** Nothing about the mailbox waits on this change. Exchange and Entra
+need only the certificate and the policy, as sshd needed only materialized
+files (D7). The wallet record's third key and the grant follow once a release
+carrying this change is pinned (`tasks.md` 7.4).
+
+**The expressibility check, which decides the code surface.** The grant,
+exercise and record schemas and the validator were read in the code leg at
+`72313da`. The records proposed here were then run through that validator in
+repo-scan mode, from a scratch directory outside both legs. The findings:
+
+1. **`scope.acts` is OPEN.** Its items are `identifier`, with no enum. The
+   validator reads acts only to bind an exercise's `act` to its grant (rule
+   (r)) and to check attenuation (rule (f)). No vocabulary closes them, so a
+   read act is expressible.
+2. **`approval_posture` is required of NO audience.** `scope.required` is
+   `[acts, authority_tier]`, and rules (g) and (h) run only when a posture is
+   present. A standalone repo scan binds no vocabulary
+   (`VOCABULARY_BINDING = None`) and refuses every posture key, so the
+   tenant's grant must OMIT it. The agent profile says the same: absent a
+   binding, a posture is refused.
+3. **`scope.objects` and the exercise's `object_ref` use the family's
+   `identifier` grammar, which EXCLUDES `@`.** That grammar is
+   `^[A-Za-z0-9][A-Za-z0-9._:/-]*$`. Only `issued_by` admits `@`, through
+   `issuer_identifier`, a dated convener-authorized widening. So the mailbox
+   cannot be named by its address verbatim: `eagle@opensoft.dev` as an object
+   is a `schema` failure at `scope/objects/0`. It CAN be named by an identifier
+   inside the grammar.
+4. **The exercise has no `object_ref` binding.** Rule (r) refuses an act
+   outside the grant's acts, but nothing compares `object_ref` with
+   `scope.objects`. An exercise reading `mailbox:opensoft.dev/brett` under
+   Eagle's grant validated cleanly.
+5. **The certificate's key fits the declared-key shape, with two omissions.**
+   A `keys:` entry requires `did`, `key_id`, `key_fingerprint` and `custody`.
+   - `public_key_multibase` MUST be omitted. The fingerprint recomputation
+     decodes only the ed25519 multicodec, so an RSA public half is refused
+     under `declared-key-fingerprint-mismatch`, as one "which does not decode
+     as base58btc carrying the ed25519 multicodec prefix".
+   - `signature_algorithm` is omitted, on the key and in the exercise's proof
+     block. Entra's `PS256` is RSASSA-PSS, while the record's `rsa-*-sha256`
+     members mean PKCS#1 v1.5. The exercise's set is `[ed25519, ecdsa-p256,
+     ecdsa-secp256k1]`.
+6. **The audience and the ceiling bind under EXISTING codes.**
+   - A grant whose `audience.wallet_ref` names the mailbox is refused under
+     `custody-ceiling-unresolved`.
+   - A grant at `act_unsupervised` to Eagle's wallet is refused under
+     `custody-ceiling-exceeded`.
+   - The per-key cap, `presenting-key-evidence-cap`, cannot fire for Eagle:
+     each of its three keys caps at `act`, which is the wallet's own ceiling.
+7. **Narrowing to a folder is not expressible.** A derived grant naming
+   `mailbox:opensoft.dev/eagle/inbox` under a parent naming
+   `mailbox:opensoft.dev/eagle` is refused under `attenuation-widened`.
+   Objects are opaque, and they are compared as a set.
+
+The proposed wallet, grant and exercise validated with one finding:
+`holder_class: machine`, which this change's `tasks.md` 2.1 adds.
+
+**The verdict: EXPRESSIBLE today, with one spelling caveat and one enforcement
+gap. The code surface is NOT widened.**
+
+- **The spelling caveat.** The mailbox is named by an identifier inside the
+  grammar, derived from its address as proposed below. That is a corpus
+  convention, not a grammar this standard pins.
+- **Admitting the address verbatim is not a one-line additive matter.** It
+  would touch `scope.objects` in the grant schema, and `object_ref` in the
+  exercise schema, which has no `issuer_identifier` and would need a new
+  `$def`. Two digested contracts would move, where D10 proves both unchanged.
+- **The enforcement gap.** Binding `object_ref` to the grant's objects is a new
+  refusal over records that validate today: a tightening, not an addition.
+  Its release class would need its own argument.
+
+Both are recorded as Open question 11 and named successors (D11.15 and
+D11.16), as are folder containment (D11.17) and PSS (D11.18).
+
+**The proposed corpus spellings** follow the corpus's own conventions. Acts are
+verb-noun snake case, like `post_transaction`. Object references are `type:id`,
+like `purchase-invoice:LXRP0002`. And `issued_by` is `opensoft`.
+
+| field | proposed spelling |
+|---|---|
+| the act | `read_mail` |
+| the object (`scope.objects` and `object_ref`) | `mailbox:opensoft.dev/eagle`: the domain, then the local part, reversible for any local part inside the grammar |
+| Eagle's `holder.holder_id`, and the grant's `audience.holder_ref` | `machine:eagle` |
+| the tier | `attest` (Open question 12) |
+| the certificate key's `did` | a `did:web` under the tenant, with the key named by `key_id`, as `wallet-agent-rsa-platform-verifiable.example.yaml` does for its RSA key |
+
+REJECTED:
+
+- **The address in the wallet.** It identifies a mailbox in Exchange's domain
+  and is not a key. In the wallet, a resource identifier would stand in for
+  the holder's, or the holder's for the resource's, and the non-substrate rule
+  forbids both. A wallet that grew one field per resource it reaches would also
+  become the directory the core says it never is.
+- **Giving the agents the certificate.** A shared key destroys attribution,
+  which is the family's founding reason ("Authority travels as attenuated
+  grants, never as keys"). Every read would be every agent's and none. The key
+  could not be withdrawn from one agent without rotating it for all. And the
+  custody would fall to the weakest place a copy landed.
+- **A client secret instead of a certificate.** A secret is readable by
+  whatever runs the service, so its custody is `holder_readable` at best. It is
+  key material in a configuration file, and once a second process reads it, it
+  is the shared credential the custody registry excludes. A non-exportable
+  certificate key is `isolated_invocable` and leaves nothing to copy.
+- **Application `Mail.Read` without the access policy.** It reads every
+  mailbox in the tenant. The grant would name one mailbox while the
+  enforcement permitted all of them, so the auditable record would be false
+  about the authority actually in force.
+- **The mailbox as the grant's audience.** An audience is a wallet, because
+  exercise requires proof of possession of the audience's key, and a mailbox
+  holds none. A grant addressed to one is refused under the existing
+  `custody-ceiling-unresolved` (`tasks.md` 4.12).
+
 ## Open questions for ratification
 
 Each is a judgment the author made that the operator should confirm or
@@ -615,9 +985,61 @@ overturn. None is ruled.
    judged on evidence and coverage, so a routine rotation does not invalidate
    history. The cost is that a compromised attester's attestations stand until
    the holder revokes them (D11.11).
+10. **How the agents on Eagle reach the mail** (D12). Two options are recorded,
+    and the design rules neither.
+    - **(a) Derived grants to the agents' own wallets.** Each is monotonically
+      narrower and is exercised with the agent's own key, through the
+      custodian. It needs per-agent authentication at the custodian (D11.13),
+      and it cannot yet narrow to a folder (D11.17).
+    - **(b) The custodian serves processes in Eagle's environment, with no
+      per-agent grant.** Access is then Eagle's environment acting, and the
+      agents are indistinguishable. It sits uneasily with the agent profile's
+      "no authority exists for that agent outside a grant" for any process that
+      is itself an agent holder.
+
+    The tenant's SSH ruling "no agent credentials" covers the CA only and does
+    not decide this.
+11. **The mail grant's expressibility** (D12), in three parts.
+    - **(a) The mailbox's name.** It is named `mailbox:opensoft.dev/eagle`, a
+      corpus convention inside the grammar. The alternative is a successor that
+      admits the address verbatim and moves two contract digests (D11.15). The
+      proposal is the convention now.
+    - **(b) The exercise's object.** An exercise's `object_ref` is not bound to
+      its grant's objects. The proposal leaves this as a successor (D11.16).
+      The alternative is to take it in this change, as a new ERROR in rule
+      (r), with its own release-class argument, because it refuses records
+      that validate today.
+    - **(c) The certificate key's algorithm.** `PS256` is in no closed
+      algorithm set, so the field is omitted, on the key and in the exercise
+      (D11.18). The alternative is to widen both sets now, which moves two
+      digests.
+12. **The tier of a read** (D12). The proposal is `attest`, the only rung whose
+    statement admits an act from which "no external effect follows". The
+    alternative is `act`, which treats disclosure as an effect. The ladder has
+    no confidentiality axis, and adding one would touch the registry this
+    change leaves alone (D11.19).
+13. **What one custodian exercise is** (D12). The proposal is one exercise per
+    signed client assertion, a polling session, because only that request
+    carries the wallet key's signature. The alternative the session named is
+    one exercise per read. That is honest only if no per-read record claims a
+    verified wallet-key signature it never had.
+14. **The Exchange mechanism that realizes the grant** (D7). The session agreed
+    an application access policy over an admin-consented `Mail.Read`, and
+    Microsoft documents RBAC for Applications as that mechanism's replacement.
+    The two fail in opposite directions:
+    - deleting the access policy widens the app to every mailbox;
+    - under RBAC, an Entra consent added later silently unions away the
+      scoping.
+
+    Either is the grant's realization, and D12 does not change.
 
 ## Status
 
 `Status: proposed`. No alignment pass has run yet. The exemplar ran one
 adversarial reviewer before ratification, and `tasks.md` 1.1 schedules the
 same here. Ratification is pending, by openWallet's operator authority.
+
+The change was amended the same day, 2026-10-16, from the continuation of the
+same discussion. The amendment added the mail grant: D12, the extensions to
+D1, D7, D8, D9 and D10, D11 items 12 to 19, and Open questions 10 to 14.
+Nothing in the amendment is ruled either.
