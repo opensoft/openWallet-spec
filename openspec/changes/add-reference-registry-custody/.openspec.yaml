@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-11-10
+origin:
+  kind: ad_hoc
+  id: openWallet:adhoc:2026-11-10-add-reference-registry-custody
+  reason: Implement and test reference registry and custody integration for the first codeXfactory pilot.
+  approved_by: Brett Heap, direct implementation instruction and explicit choice to build portable reference services and qualify them in isolation; no production or live custody authorization.
+  approved_on: 2026-11-10
