@@ -2,7 +2,7 @@
 code_surface: openWallet code leg (`opensoft/openWallet-code`), named here and performed by nothing in this change. A NEW contract family directory `contracts/openxwallet-practitioner-profile/` (its leg is Open question 7) holding a licence verification schema (kind `xfactory_wallet_licence_verification`), a verifier revocation list schema (kind `xfactory_wallet_licence_revocation_list`) and a relying domain's held verifier key schema (kind `xfactory_wallet_held_verifier_key`), with its README and synthetic positive and negative examples; `scripts/validate-openxwallet.py` (three new kinds, new ERROR codes in a `licence-verification-*` family, new requirement rows, no rename, no new WARNING); and one description sentence in `contracts/openxwallet/openxwallet-subject-attestation.schema.yaml`, which quotes the non-substrate rule and would otherwise omit its exception. No new proof profile: a sign-off uses the ratified `wallet-challenge-proof`. At the assembly root, the bookkeeping of a release. Every name here is PROPOSED (`design.md` D14), and nothing is reserved.
 target_release: unallocated. The realization is expected to be an ADDITIVE MINOR in which three owned members are added and one digested contract byte moves. Per the root AGENTS.md rule 5 the five coordinated values are allocated at realization and nothing is reserved here.
 Status: proposed
-Discussed: not discussed in session. Drafted on 2026-11-15 by Claude (Opus 5.5) on Brett Heap's ruling 153, as a draft for his review, and revised the same day after an independent review; ratification pending.
+Discussed: not discussed in session. Drafted on 2026-11-15 by Claude (Opus 5.5) on Brett Heap's ruling 153, as a draft for his review, and revised the same day after an independent review and a confirmation review; ratification pending.
 ---
 
 # Proposal: add-practitioner-profile-and-licence-verification
@@ -76,10 +76,12 @@ capability `openxwallet`. No change to `openxwallet-agent-profile`.
    - a verification is issued by a named verifier, in a signing domain of its
      own, over a recorded proof of possession from each key it names (D3);
    - a relying domain holds verifier keys as records of its own, with provenance
-     its own administrator cannot forge alone, and a compromise time (D4);
+     its own administrator cannot forge alone, each delivered with its
+     verifier's newest revocation list, and a compromise time; only a key
+     delivered with a release supports the threat model's aim (D4);
    - a verification is checked inside the relying domain and never waits on an
      outside service: an old revocation list flags a reliance and never blocks
-     it (D5);
+     it, and a raised item never goes to the signer alone (D5, D6);
    - how it ends, checked at reliance, and which revocations reach a human (D6);
    - it is evidence about a licence, never identity or authority (D7);
    - a relying domain binds each sign-off key to its account itself, and takes

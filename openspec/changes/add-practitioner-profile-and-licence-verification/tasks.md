@@ -16,8 +16,9 @@ ruling first.
       `add-composition-drift-cascade`, the core contracts, the validator,
       openChart-spec#5's sign-off (CA-04, AU-03, AU-07, EN-06) and openSig's
       draft `add-wallet-bound-attestation`. The verdicts go into `design.md` as
-      returned, each with its disposition. One independent review has already
-      run, on the first draft at `8aa0364`.
+      returned, each with its disposition. Two reviews have already run: an
+      independent review of the first draft at `8aa0364`, and a confirmation
+      review of the revision at `169120e`.
 - [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the nineteen open questions in
       `design.md` ("Open questions for ratification"), by number, the first five
       first, and dispose of the design calls PP-1 to PP-16.
@@ -50,7 +51,8 @@ ruling first.
       `xfactory_wallet_held_verifier_key`: the verifier, the key and its
       fingerprint, the licensing authorities it is held for, provenance
       (`release` with the release named, or `two_person` with two named people
-      and the announcement referenced), state and `compromised_since` (D4).
+      and the announcement referenced), the sequence of the revocation list
+      delivered with it, state and `compromised_since` (D4).
 - [ ] 2.5 `contracts/openxwallet/openxwallet-subject-attestation.schema.yaml`:
       one description sentence naming the exception (D14). Its `sha256:` moves.
 - [ ] 2.6 Synthetic examples: valid ones, and one negative example per new
@@ -84,10 +86,11 @@ ruling first.
       primitive the possession profile already uses; independently generated
       known-answer vectors, on feature 016's T007 precedent.
 - [ ] 4.2 A relying-domain check that returns `relied_on` (with the list used,
-      its age and any freshness flag), `refused` or `not_checkable` with its
-      reason, from the five held inputs of D5 alone, that makes no network call
-      and never waits, and that refuses to replace a held list with a lower
-      sequence.
+      its age, any freshness flag and the verifier key's provenance), `refused`
+      or `not_checkable` with its reason, from the five held inputs of D5 alone;
+      that verifies the verifier's signature and each recorded proof of
+      possession (D3); that makes no network call and never waits; and that
+      refuses to replace a held list with a lower sequence.
 
 ## 5. Release (assembly root)
 
@@ -101,9 +104,10 @@ ruling first.
       this change's MODIFIED block at the union `design.md` D11 states, and
       re-run the pinned gate before archiving this change. If this change
       archives first, that change carries the same obligation. In either case,
-      check the regenerated block line by line: every line of both changes'
-      blocks, body text as well as scenarios, must be present, because the CLI
-      checks scenarios and not body text.
+      check the regenerated block sentence by sentence and scenario by scenario,
+      ignoring line breaks: every sentence and scenario of both changes' blocks,
+      body text as well as scenarios, must be present, because the CLI checks
+      scenarios and not body text.
 - [ ] 6.2 If `add-trust-anchors-and-machine-holders` is ratified, decide whether
       the held verifier key reuses its per-key state machinery (D12). No
       requirement here changes either way.
