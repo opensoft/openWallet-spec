@@ -16,9 +16,10 @@ ruling first.
       `add-composition-drift-cascade`, the core contracts, the validator,
       openChart-spec#5's sign-off (CA-04, AU-03, AU-07, EN-06) and openSig's
       draft `add-wallet-bound-attestation`. The verdicts go into `design.md` as
-      returned, each with its disposition. Two reviews have already run: an
-      independent review of the first draft at `8aa0364`, and a confirmation
-      review of the revision at `169120e`.
+      returned, each with its disposition. Three reviews have already run: an
+      independent review of the first draft at `8aa0364`, a confirmation review
+      of the revision at `169120e`, and a final check of `7442ea5` with an
+      automated review.
 - [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the nineteen open questions in
       `design.md` ("Open questions for ratification"), by number, the first five
       first, and dispose of the design calls PP-1 to PP-16.
@@ -65,7 +66,8 @@ ruling first.
       computation: the bound wallet resolves and its holder class is
       `practitioner`; every key in `subject.keys[]` is one the bound wallet
       declares, its fingerprint recomputes from its public key, and its proof is
-      present; the verifier's key is declared by the verifier's wallet;
+      present, with the proof's `key_ref` the key's recorded reference and its
+      `wallet_ref` the verification's `subject.wallet_ref`; the verifier's key is declared by the verifier's wallet;
       `supersedes` resolves to a verification of the same licence, wallet and
       verifier; `issued_at` is not earlier than `source.checked_at`;
       `rely_until` is later than `issued_at`, no later than `licence.expires_on`
@@ -87,10 +89,20 @@ ruling first.
       known-answer vectors, on feature 016's T007 precedent.
 - [ ] 4.2 A relying-domain check that returns `relied_on` (with the list used,
       its age, any freshness flag and the verifier key's provenance), `refused`
-      or `not_checkable` with its reason, from the five held inputs of D5 alone;
+      or `not_checkable` with its reason, from the six held inputs of D5 alone;
       that verifies the verifier's signature and each recorded proof of
-      possession (D3); that makes no network call and never waits; and that
-      refuses to replace a held list with a lower sequence.
+      possession, with its key and wallet references (D3); that makes no network
+      call and never waits; and that refuses to replace a held list with a lower
+      sequence.
+- [ ] 4.3 The supersession index of D5: every verification the domain receives
+      is kept; a later verification enters the index only once it verifies under
+      a held verifier key and matches the earlier one's verifier, licence and
+      wallet; the index can be rebuilt from the kept verifications; no entry is
+      removed. Confirmations: an earlier verification presented after the domain
+      received the later one returns `superseded`, though its verifier key, the
+      newest list, the wallet record and its reliance bound are unchanged; it
+      still returns `superseded` after the later one is revoked or passes its
+      bound; and a later verification that does not verify enters nothing.
 
 ## 5. Release (assembly root)
 

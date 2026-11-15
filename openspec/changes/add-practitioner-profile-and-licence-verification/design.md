@@ -3,8 +3,8 @@
 ## Context
 
 Drafted on 2026-11-15 by Claude (Opus 5.5), on Brett Heap's ruling 153, as a
-draft for his review, and revised the same day after an independent review and
-again after a confirmation review.
+draft for his review, and revised the same day after an independent review, a
+confirmation review, and a final check with an automated review.
 **Nothing here is ratified.** The owner's rulings quoted below are his
 decisions; every other choice in this change is a design call, marked PROPOSED
 where it is made and listed in "Design calls" below, so that it can be
@@ -251,9 +251,11 @@ in it is on the path of a sign-off, so ruling 156 is not engaged by it.
 
 **Who checks the recorded proofs.** The relying domain does, whenever it checks
 the verification: each proof's signature verifies under the recorded public
-key, the proof names the recorded key reference, and the recorded fingerprint
-is that key's. A verification with a proof that fails is refused as
-`signature_invalid` (D5). The domain cannot check the verifier's challenge or
+key, the proof names the recorded key reference and the wallet the
+verification is bound to (its `wallet_ref` equals `subject.wallet_ref`), and the
+recorded fingerprint is that key's. A verification with a proof that fails any
+of these is refused as `signature_invalid` (D5); the validator can check the two
+references statically (`tasks.md` 3.2). The domain cannot check the verifier's challenge or
 the verifier's binding of the key, which are the verifier's own, and a recorded
 proof never binds a key to an account in the domain (D8). The validator does not
 verify signatures, so it reports the recorded proofs as NOTES (`tasks.md` 3.4).
@@ -295,16 +297,20 @@ because ruling 154's exception does not reach the domain's own configuration
 (D10). It never takes a verifier's key from the practitioner, and never from the
 verification it is checking.
 
-**Provenance its own administrator cannot forge alone.** Each held verifier key
-records how it arrived, from a closed set of two:
+**A recorded provenance, from a closed set of two.** Each held verifier key
+records how it arrived:
 
 - `release`: it was delivered with a release of the relying system, which names
   the release; or
 - `two_person`: it was added by two named people, and the addition was announced
-  to the domain's declared audience, which the record references.
+  to the domain's declared audience, which the record references. No
+  administrator acting through the domain can supply that record alone.
 
-One administrator acting alone cannot make the domain hold a verifier key. That
-makes a practice becoming its own verifier visible inside a deployment the
+The provenance is recorded, not proof against whoever runs the deployment: in a
+small practice the administrator and the operator are often one person, and an
+operator can alter the domain's records. No administrator acting through the
+domain can make it hold a verifier key alone. That makes a practice becoming
+its own verifier visible inside a deployment the
 practice itself runs; it does not make it impossible. Two people at the same
 practice can add the practice's own key, and an operator running altered
 software can forge the two-person record (D8's limits). So "a practice may not
@@ -356,10 +362,11 @@ REJECTED:
 ## D5 — Checking a verification, and never waiting (ruling 156) (PROPOSED, PP-5)
 
 Ruling 156: "Inside the practice's own deployment, so the chart never waits on an
-outside service to accept a decision." A relying domain decides from five things
+outside service to accept a decision." A relying domain decides from six things
 it already holds: the verification, as the holder presented it; the held
 verifier key (D4); the newest revocation list from that verifier that it holds;
-the held record of the bound wallet (D8); and its own clock. It contacts no
+the held record of the bound wallet (D8); the supersession index it keeps (below);
+and its own clock. It contacts no
 verifier, licensing authority, directory, wallet or holder device, and waits on
 none.
 
@@ -389,16 +396,31 @@ flag; `refused`, with a reason from a closed list (`reliance_bound_passed`,
 `superseded`, `revoked`, `wallet_mismatch`, `key_not_covered`,
 `verifier_not_held`, `verifier_not_active`, `verifier_compromised`,
 `signature_invalid`, `wallet_not_active`, `status_not_accepted`), where
-`signature_invalid` means that the verifier's signature, or a proof of
-possession the verification records, does not verify (D3); and `not_checkable`,
+`signature_invalid` means that the verifier's signature does not verify, or
+that a proof of possession the verification records does not verify or does not
+name the key and the wallet it is recorded for (D3); and `not_checkable`,
 with a reason (`revocation_list_missing`, `wallet_record_missing`), only where
 the deployment holds nothing to check with. `not_checkable` is cured by the
 deployment obtaining what it lacks, never by the signer. Because a verifier key
 arrives with its verifier's newest list (D4), `revocation_list_missing` arises
 only when that delivery failed.
 
-**Supersession is decided from what the domain holds.** A later verification
-names the one it supersedes, so a domain knows of it once it holds it.
+**Supersession is decided from what the domain holds, and the domain keeps it.**
+Supersession needs no revocation: a verifier that re-verifies issues a later
+verification naming the earlier one in `supersedes`, and may publish nothing
+about the earlier one. So the verification presented, its verifier key, the
+revocation list, the wallet record and the clock can all be unchanged while the
+verification has been replaced, and a check limited to those five cannot tell.
+The domain therefore keeps every licence verification it receives, and keeps a
+supersession index of them: for each one another names in `supersedes`, the one
+that supersedes it. A later verification enters the index only once its
+signature verifies under a held verifier key and it is from the same verifier,
+for the same licence and wallet. The index is derived from the kept
+verifications, so it can be rebuilt from them; an entry is never removed, even
+when the later verification is revoked or passes its reliance bound, because a
+superseded verification never returns to force (D6). Presented after the domain
+received its successor, an earlier verification is refused as `superseded`.
+What someone who can alter the domain's records can do to the index is in D8.
 
 **The freshness bound is the domain's.** The verifier states, in each list, the
 time by which it will publish the next; the domain declares how old a list may
@@ -583,6 +605,20 @@ D6). A practitioner who colludes with the operator can back-date too. Outside
 evidence of time, such as anchoring the digests of openSig's attestations, is a
 successor (D15).
 
+**The supersession index under the same threat** (D5). The index is one of the
+domain's records, so whoever can alter them can add an entry, which refuses a
+verification still in force, or delete one, which lets a superseded verification
+be relied on again. Adding is refusing service, among the limits. Deleting
+forges no sign-off by itself, because a sign-off still needs a key the domain
+bound and the verification names, made by its holder; it matters where the
+later verification dropped a key, for instance one the practitioner lost. An
+honest check does not trust the index: it rebuilds it from the verifications in
+its copy of the records, each of which names what it supersedes and is signed
+by the verifier, so a deleted entry shows unless the later verification itself
+is deleted, which is deleting records, among the limits. A practitioner who
+loses a key also retires it in their wallet, which stops that key making a
+sign-off whatever happens to the index (D6).
+
 **Per-key bindings and the registry.** The ratified profile checks a proof against
 a binding from a trusted registry, and `add-reference-registry-custody` keeps one
 current binding per subject. Each bound key therefore has its own binding, whose
@@ -625,14 +661,25 @@ custody registry. A key whose declared custody is `isolated_per_use_authorized`
 evidences that the HOLDER acted; `holder_readable` and `isolated_invocable`
 evidence only the holder's environment. The registry defines the per-use
 authorization as one the holder's execution context "cannot itself supply", so a
-PIN typed into the workstation that asks for the signature does not supply it: the
-authorization is a touch or a verification on the device that holds the key.
-That narrows the registry's definition for a sign-off: the registry also admits
-"an external policy approval, a separate custodian", and neither is the
-practitioner authorizing the use on the device. No record declares the narrower
-condition, and nothing checks it until a custody-acceptance record exists (Open
-question 6). Until then it is what the relying domain asks of a practitioner's
-key, not a fact any proof or declaration shows.
+PIN typed into the workstation that asks for the signature does not supply it.
+This change leaves the registry's statement as it is.
+
+**What a relying domain asks of a sign-off key** (an acceptance rule, not a change
+to the registry). The registry's per-use authorization may be "a hardware presence
+check, an external policy approval, a separate custodian", and under the registry
+each of them evidences that the holder acted. Before it accepts a practitioner's
+sign-off of a medical decision, the relying domain asks for the first only: each
+use authorized by the practitioner on the device that holds the key, not by an
+approval or a custodian away from it. That is the domain's rule for what it
+accepts, as openChart's draft already makes rules for what it accepts (its CD-48);
+the registry's statement, and every other consumer's reading of it, are unchanged,
+so no MODIFIED delta of the registry or of the core's custody requirement is
+needed. No record declares the rule and nothing checks it yet (Open question 6): a
+custody-acceptance record could show it for a key, and a successor proof profile
+that reports how each use was authorized could show it for each signature
+("Devices", below). Until then it is what the relying domain asks of a practitioner's key,
+not a fact any proof or declaration shows.
+
 Which custody a sign-off needs is the relying domain's decision: openChart's draft
 proposes to accept only `isolated_per_use_authorized` (its CD-48).
 
@@ -813,7 +860,8 @@ offline. It differs in the one way ruling 154 makes decisive: an anchor is owned
 a wallet, and the relying domain has none. Its provenance set (`release`,
 `two_person`) is also different from that change's provenance methods, because its
 question is different: not "how did this holder come to trust this key" but "can
-this domain's own administrator make it trust a verifier alone".
+one administrator, acting through the domain, make it trust a verifier alone, and
+can a check from outside the domain see how the key arrived".
 
 If that change is ratified, the realization may reuse its machinery where the two
 agree, such as the per-key state and its rule that a revoked key never returns. That
@@ -945,14 +993,14 @@ relying system. Outside evidence of time is a successor.
 | Question | The answer both drafts give |
 |---|---|
 | What identifies a wallet | The `wallet_id` of its openWallet wallet record. It is `wallet_ref` in a proof and in an attestation, and `openwallet_id` in openChart's sign-off evidence. It is attestation, never the identifier of a person or a patient. |
-| What identifies a key | The pair (`did`, `key_id`) under which the wallet declares it, and its `key_fingerprint`: `sha256:` and the lowercase hex SHA-256 of the raw public key, openWallet's one spelling. It is `key_ref` in a proof, written as the DID URL `<did>#<key_id>`. An attestation records the reference and the fingerprint recomputed from the public key that the binding named. |
+| What identifies a key | The pair (`did`, `key_id`) under which the wallet declares it, and its `key_fingerprint`: `sha256:` and the lowercase hex SHA-256 of the raw public key, openWallet's one spelling. It is `key_ref` in a proof, written as the DID URL `<did>#<key_id>`. An attestation records the reference as the proof gave it and, where openSig found a binding, the fingerprint recomputed from the public key that binding named; it never fills from the proof a value it did not resolve. |
 | Which keys may make a sign-off | Only a key that the relying party bound to the practitioner's account individually, by that key's own proof of possession in the practitioner's own session, and whose fingerprint a licence verification in force names. The relying party takes its held copy of the wallet record only from the practitioner, and no administrator adds a key to it. Each bound key has its own binding; with a registry that keeps one current binding per subject, the subject is that account's binding of that key. Replacing a key is a new binding and needs a verification that names the new key. |
-| What custody a key declares | One model of openWallet's closed custody registry (`openxwallet-custody`, registry version 1), declared for that key in its wallet record: `holder_readable`, `isolated_invocable` or `isolated_per_use_authorized`. In a binding used for a sign-off, the custody reference is `openxwallet-custody:<registry_version>:<model>` and equals the model the held wallet record declares for that key; openSig's `custody_reference_mismatch` compares those two. Only `isolated_per_use_authorized` evidences that the holder acted, and only where each use is authorized on the device that holds the key, never by a code typed into the computer that asks for the signature; for a sign-off, that narrows the registry's own definition, which also admits an external policy approval or a separate custodian. A wallet may declare such a key only if its own custody is the same model, because no declared key may outrank its wallet. A declaration is not proof: neither openWallet's proof nor openSig's attestation shows that a key's custody is what the wallet declares, or that its uses are authorized on the device, and nothing can until a custody-acceptance record exists. |
-| Which custody a sign-off needs | The relying party decides. openChart's draft proposes (its design call CD-48) to accept only `isolated_per_use_authorized` for a practitioner's sign-off. openSig records the model the key declares and never raises it. |
+| What custody a key declares | One model of openWallet's closed custody registry (`openxwallet-custody`, registry version 1), declared for that key in its wallet record: `holder_readable`, `isolated_invocable` or `isolated_per_use_authorized`. In a binding used for a sign-off, the custody reference is `openxwallet-custody:<registry_version>:<model>` and equals the model the held wallet record declares for that key; openSig's `custody_reference_mismatch` compares those two. Under the registry, as ratified, only `isolated_per_use_authorized` evidences that the holder acted: each use needs an authorization the holder's execution context cannot itself supply, for which the registry names "a hardware presence check, an external policy approval, a separate custodian". A wallet may declare such a key only if its own custody is the same model, because no declared key may outrank its wallet. A declaration is not proof: neither openWallet's proof nor openSig's attestation shows that a key's custody is what the wallet declares, or how its uses are authorized. A custody-acceptance record could show the first for a key, and a successor proof profile that reports user verification for each use could show the second, one signature at a time. |
+| Which custody a sign-off needs | The relying party decides. openChart's draft proposes (its design call CD-48) to accept only `isolated_per_use_authorized` for a practitioner's sign-off. Before it accepts one, the relying party also asks that each use is authorized by the practitioner on the device that holds the key, never by a code typed into the computer that asks for the signature, nor by an approval or a custodian away from the device: an acceptance rule of its own, which leaves the registry's statement as it is. openSig records the model the key declares and never raises it. |
 | What the proof is made over | openWallet's ratified possession-only profile `wallet-challenge-proof`: profile constant `openwallet.challenge-proof.v0`; Ed25519 over the domain separator `openWallet.challenge-proof.v0` and a NUL byte, then the RFC 8785 canonical form of every unsigned proof field. Its `challenge_digest` is `sha256:` and the SHA-256 of the relying party's RFC 8785 canonical statement, which carries the relying party's single-use challenge. For openChart that statement is the sign-off statement, and the digest is its `statement_sha256`. The challenge reference is an opaque random value, 32 random bytes in unpadded base64url, that carries no meaning. The proof also binds the wallet, the key, the subject, the custody reference, the binding and its revision. openSig is given the digest and the challenge reference, never the statement. |
 | Who owns consent | The relying party. A sign-off is consent to an exact request, and openWallet's ratified profile does "not assert MFA, human presence, explicit human consent, workload composition, delegation or domain permission". The relying party evidences what the signer was shown, refusing a signature over a digest that differs from it; re-authentication at signing; and, through the custody it accepts, per-use authorization at the key. Neither the proof nor the attestation is consent. |
-| Who verifies what | openWallet's verification checks a proof against the key's current binding. openSig runs that verification, never a second implementation of it, and seals the result with the proof, the binding it rested on and its own time. At acceptance the relying party verifies the attestation under openSig's attestation key; verifies the sealed proof itself under the sealed public key over its own recomputed statement digest; checks that the sealed fingerprint is a key it bound and that the licence verification names; checks the sealed challenge reference against its statement; and checks the licence verification under the verifier key it holds. |
-| Where it is checked | Inside the relying party's own deployment (ruling 156). The key binding registry, the held wallet records, the openSig attester and its attestation keys, the held verifier keys and the verifiers' revocation lists are held there. The practitioner's key stays in the practitioner's custody. The check contacts and waits on nothing outside the deployment: a revocation list older than the relying party's freshness bound flags the reliance and never blocks it. |
+| Who verifies what | openWallet's verification checks a proof against the key's current binding. openSig runs that verification, never a second implementation of it, and seals the result with what it was given, what it resolved (the binding the proof rested on, where it found one) and its own time. Verifying an attestation is checking openSig's signature over it; validating its result is a second step, and only a `verified` result's sealed proof must verify. A `not_verified` attestation is evidence of a failed attempt, verified by its signature alone; its sealed proof need not verify, and it may carry no binding. At acceptance the relying party accepts only a `verified` result: it verifies the attestation under openSig's attestation key; verifies the sealed proof itself under the sealed public key over its own recomputed statement digest; checks that the sealed fingerprint is a key it bound and that the licence verification names; checks the sealed challenge reference against its statement; and checks the licence verification under the verifier key it holds. |
+| Where it is checked | Inside the relying party's own deployment (ruling 156). The key binding registry, the held wallet records, the openSig attester and its attestation keys, the held verifier keys, the verifiers' revocation lists, and every licence verification the relying party has received, with the supersession index it keeps of them, are held there. The practitioner's key stays in the practitioner's custody. The check contacts and waits on nothing outside the deployment. The deployment fetches the verifiers' revocation lists when it can, apart from any check, and a revocation list older than the relying party's freshness bound flags the reliance and never blocks it. |
 | What neither states | The content behind the digest, the practitioner's authority, their consent, whether they were present beyond what the declared custody evidences, and whether the sign-off counts. openWallet's licence verification states the licence; openSig's attestation states nothing about it. |
 
 ## Design calls
@@ -964,13 +1012,13 @@ owner.
 |---|---|---|
 | PP-1 | The profile is a sibling capability `openxwallet-practitioner-profile` over the core; its holder-class rule is a record rule, and a relying domain may also refuse on its held record's class; no agent carries a verification. | D1 |
 | PP-2 | The fields of a licence verification, including the keys it names; no clinical scope; the licence identifier in clear; a random verification id; a reliance bound no later than the licence's expiry or twelve months after the check; one verification per licence; the closed status set. | D2 |
-| PP-3 | A verifier is a holder with its own wallet; Ed25519 over RFC 8785 with signing domains of their own; a recorded proof of possession from each key it names, which the relying domain checks; opaque verifier references in the recorded proofs; identity proofing is the verifier's record; the standard does not narrow who may verify. | D3 |
-| PP-4 | Held verifier keys are records of the relying domain, with provenance `release` or `two_person`, a state and a compromise time; only a `release` key supports D8's aim, each reliance records its key's provenance, and a relying domain may admit `release` keys only (recommended for openChart version 1); a practice verifying its own practitioners is visible, not enforced, where `two_person` keys are admitted; each key arrives with its verifier's newest revocation list; reliances since a compromise are raised. | D4 |
-| PP-5 | Checking from five held things; revocation freshness never blocks; the list used, its age and the verifier key's provenance recorded on every reliance, flagged and raised past the freshness bound; the worst case, in which the reliance bound is the only hard stop; no list rollback; `signature_invalid` covers the recorded proofs; `not_checkable` only when the deployment holds nothing to check with, cured by the deployment. | D5 |
+| PP-3 | A verifier is a holder with its own wallet; Ed25519 over RFC 8785 with signing domains of their own; a recorded proof of possession from each key it names, which the relying domain checks, its wallet reference included; opaque verifier references in the recorded proofs; identity proofing is the verifier's record; the standard does not narrow who may verify. | D3 |
+| PP-4 | Held verifier keys are records of the relying domain, with a recorded provenance, `release` or `two_person` (a record no administrator acting through the domain can supply alone, which whoever runs the deployment can still alter), a state and a compromise time; only a `release` key supports D8's aim, each reliance records its key's provenance, and a relying domain may admit `release` keys only (recommended for openChart version 1); a practice verifying its own practitioners is visible, not enforced, where `two_person` keys are admitted; each key arrives with its verifier's newest revocation list; reliances since a compromise are raised. | D4 |
+| PP-5 | Checking from six held things, the supersession index among them, which the domain keeps, derives from every verification it receives, and never prunes, so an earlier verification presented after its successor is refused as `superseded`; revocation freshness never blocks; the list used, its age and the verifier key's provenance recorded on every reliance, flagged and raised past the freshness bound; the worst case, in which the reliance bound is the only hard stop; no list rollback; `signature_invalid` covers the recorded proofs and their key and wallet references; `not_checkable` only when the deployment holds nothing to check with, cured by the deployment. | D5 |
 | PP-6 | How a verification ends; verifier monitoring and its worst case; what the practitioner must do and how often; key retirement per key; the closed reason classes; `issued_in_error` and `verifier_withdrawn` raised to a human; a raised item never goes to the signer alone, and the relying domain names a second recipient. | D6 |
 | PP-7 | A verification is never identity or authority; the three-leg match, leg 3 needing the domain's own record of authority, jurisdiction, licence identifier and class. | D7 |
-| PP-8 | The threat model's aim, which holds only for verifier keys that ship with a release, and its limits, withholding revocation lists among them; per-key binding; the held wallet record only from the practitioner; one binding per bound key. | D8 |
-| PP-9 | A sign-off is the ratified proof over the statement digest; the custody reference form and what a mismatch compares; per-use authorization on the device, which narrows the registry for a sign-off and is unchecked until custody evidence exists; a per-use key forces the wallet's own custody; consent owned by the relying domain; the WebAuthn profile as a required successor for phones and browsers, with what it must state. | D9 |
+| PP-8 | The threat model's aim, which holds only for verifier keys that ship with a release, and its limits, withholding revocation lists among them; what altering the supersession index can and cannot do, and the honest check rebuilding it; per-key binding; the held wallet record only from the practitioner; one binding per bound key. | D8 |
+| PP-9 | A sign-off is the ratified proof over the statement digest; the custody reference form and what a mismatch compares; per-use authorization on the device as the relying domain's acceptance rule for a sign-off, leaving the registry's statement as ratified, and unchecked until a custody-acceptance record or a successor proof profile shows it; a per-use key forces the wallet's own custody; consent owned by the relying domain; the WebAuthn profile as a required successor for phones and browsers, with what it must state. | D9 |
 | PP-10 | The wording of the MODIFIED requirement: the exception named by the act, covering the sign-off and the binding it needs; no wallet of the domain's own; ruling 183 as a clarification, including "on whose behalf". | D10 |
 | PP-11 | Whichever of this change and `add-trust-anchors-and-machine-holders` archives second regenerates at the union, checked sentence by sentence and scenario by scenario, ignoring line breaks; no sentence widens the exception. | D11 |
 | PP-12 | No dependency on trust anchors; possible convergence with an organisation-level anchor set. | D12 |
@@ -1042,9 +1090,9 @@ recommendation. None is ruled. The first five are the ones the rest hang on.
    version 1, verifier keys reach a deployment only with a release of openChart, each
    with its verifier's newest revocation list, and openChart does not admit the
    two-person path, because a reliance on a two-person key falls outside the aim of
-   Open question 1. The owner rules that a practice may not verify its own
-   practitioners, which release-only makes hold in openChart rather than merely
-   visible. Before go-live the owner names the first verifier: an established
+   Open question 1. The recommendation is also that the owner rule that a practice
+   may not verify its own practitioners; he has not ruled it, and release-only would
+   make it hold in openChart rather than merely be visible. Before go-live the owner names the first verifier: an established
    primary-source verification service that will sign such records if one can be
    found, otherwise a verifier operated independently of every practice, whose key
    ships with openChart's release. Until one exists, ruling 152 keeps every decision
@@ -1070,7 +1118,7 @@ recommendation. None is ruled. The first five are the ones the rest hang on.
    be a new decision; the owner is asked to make it, and the recommendation is yes.
    Decide it together with Open question 2: if the WebAuthn successor is authorized, its
    registration attestation is the natural custody evidence. Until such evidence exists,
-   D9's condition that each use is authorized on the device is not checked.
+   D9's acceptance rule, that each use is authorized on the device, is not checked.
 7. **Which leg holds the new family?** Recommendation: the code leg, by an explicit
    extension of the Q7 override (D14).
 8. **Bind each sign-off key individually?** Recommendation: yes (D8).
@@ -1104,14 +1152,15 @@ recommendation. None is ruled. The first five are the ones the rest hang on.
     deployment, populated only by openChart's per-key bindings (D8).
 19. **What must openChart hold locally to check a sign-off without waiting?**
     Recommendation: the key binding registry; the held wallet records of bound
-    practitioners; the licence verifications as presented; each held verifier key with its
+    practitioners; every licence verification it has received, with the supersession
+    index it keeps of them (D5); each held verifier key with its
     provenance and state; each verifier's newest revocation list; and, through openSig's
     draft, the openSig attester and its attestation keys, retired ones included.
 
 ## Status
 
-`Status: proposed`. Two reviews have run: an independent review of the first draft at
-`8aa0364`, and a confirmation review of the revision at `169120e`; this revision answers
-both. `tasks.md` 1.1 still schedules an adversarial reviewer
+`Status: proposed`. Three reviews have run: an independent review of the first draft at
+`8aa0364`, a confirmation review of the revision at `169120e`, and a final check of
+`7442ea5` together with an automated review; this revision answers all three. `tasks.md` 1.1 still schedules an adversarial reviewer
 over this revision before ratification. Ratification is pending, by openWallet's operator
 authority, Brett Heap.

@@ -74,7 +74,8 @@ record, for each such key, the key's reference, its fingerprint, its public
 key, the proof itself and when it was made. A relying domain SHALL check each
 recorded proof whenever it checks the verification: that the proof's signature
 verifies under the recorded public key, that the proof names the recorded key
-reference, and that the recorded fingerprint is that public key's. It cannot
+reference, that its wallet reference is the wallet the verification is bound
+to, and that the recorded fingerprint is that public key's. It cannot
 check the verifier's challenge or the verifier's binding of the key, which are
 the verifier's own, and SHALL NOT treat a recorded proof as a binding of its
 own. The recorded proofs carry the verifier's own subject and binding
@@ -119,6 +120,14 @@ record, and the verification SHALL reference it.
 - THEN the domain does not rely on the verification
 - AND it refuses it as it refuses a verification whose signature does not verify
 
+#### Scenario: a recorded proof names the bound wallet
+
+- WHEN a recorded proof's wallet reference differs from the wallet the
+  verification is bound to, though the proof verifies under its recorded public
+  key
+- THEN the domain does not rely on the verification
+- AND it refuses it as it refuses a verification whose signature does not verify
+
 #### Scenario: a key added later is not covered
 
 - WHEN a key is added to the wallet, or to a relying domain's held copy of the
@@ -126,21 +135,23 @@ record, and the verification SHALL reference it.
 - THEN that verification does not cover the added key
 - AND a sign-off made with the added key is not supported by it
 
-### Requirement: A relying domain holds verifier keys with provenance its own administrator cannot forge alone
+### Requirement: A relying domain holds verifier keys with a recorded provenance, and only a key delivered with a release supports a check from outside the domain
 
 openWallet SHALL require a relying domain to hold each verifier key it relies
 on as a record of its own, never as a key the wallet's holder supplies and
 never learned from the verification being checked. Each held verifier key SHALL
 carry the verifier's identity, the public key and its fingerprint, its state,
-and a provenance that the relying domain's own administrator cannot forge
-alone: either it was delivered with a release of the relying system, or it was
-added by two named people, with the addition announced to the domain's
-declared audience. The two differ in what a later check can show. A key
-delivered with a release can be checked by anyone who holds that release, on a
-copy of the records; a key added by two people rests on the domain's own
-records alone, which whoever runs the deployment can alter. Every reliance SHALL
-therefore record the provenance of the verifier key it rested on, and a
-reliance on a key added by two people SHALL be recorded as such. A verifier key
+and its provenance, recorded from a closed set of two: it was delivered with a
+release of the relying system, which the record names; or it was added by two
+named people, with the addition announced to the domain's declared audience, a
+record no administrator acting through the domain can supply alone. The two
+differ in what a later check can show. A key delivered with a release can be
+checked by anyone who holds that release, on a copy of the records; a key added
+by two people rests on the domain's own records alone, which whoever runs the
+deployment can alter. Only a key delivered with a release therefore supports a
+sign-off against someone who can alter the domain's records. Every reliance
+SHALL record the provenance of the verifier key it rested on, and a reliance on
+a key added by two people SHALL be recorded as such. A verifier key
 SHALL arrive together with that verifier's newest revocation list, so that the
 domain can check the verifier's verifications from the moment it holds the key.
 A held verifier key that is compromised SHALL record the time from which it is
@@ -150,8 +161,8 @@ release; a verification names its verifier so that it can.
 
 #### Scenario: a key added by one administrator is not held
 
-- WHEN one administrator of a relying domain adds a verifier key alone, without
-  a second named person or a release of the relying system
+- WHEN one administrator, acting through the relying domain, adds a verifier
+  key alone, without a second named person or a release of the relying system
 - THEN the key is not held
 - AND no verification signed by it is relied on
 
@@ -183,8 +194,18 @@ release; a verification names its verifier so that it can.
 openWallet SHALL let a relying domain decide whether to rely on a licence
 verification from what it already holds: the verification, as the wallet's
 holder presented it; the held verifier key; the newest revocation list from
-that verifier that the domain holds; the held record of the bound wallet; and
-its own clock. Deciding SHALL NOT contact the verifier, the licensing
+that verifier that the domain holds; the held record of the bound wallet; the
+supersession index the domain keeps; and its own clock. Supersession needs no
+revocation, so nothing else the domain holds shows that a later verification
+replaced the one presented. The relying domain SHALL therefore keep every
+licence verification it receives, and SHALL keep a supersession index of them:
+for each verification it has received that another names in its `supersedes`,
+the verification that supersedes it. A verification enters the index only once
+its signature verifies under a held verifier key and it is from the same
+verifier, for the same licence and wallet, as the one it supersedes. The index
+SHALL be what the kept verifications say they supersede, so that it can be
+rebuilt from them, and an entry SHALL NEVER be removed, even when the later
+verification ends. Deciding SHALL NOT contact the verifier, the licensing
 authority, a directory, the wallet or its holder's device, and SHALL NOT wait
 for any of them. The domain fetches each verifier's revocation list when it
 can. At reliance it SHALL use the newest list it holds, SHALL NOT wait for a
@@ -246,6 +267,22 @@ obtaining what it lacks, never by the signer.
 - WHEN a relying domain is offered a revocation list from a verifier whose
   sequence is lower than the list it holds
 - THEN it keeps the list it holds
+
+#### Scenario: an earlier verification shown after its successor is superseded
+
+- WHEN a relying domain has received a verification that names an earlier one
+  in its `supersedes`, and the earlier verification is then presented to it
+- THEN the domain refuses the earlier verification as superseded
+- AND it does so though the earlier verification's verifier key, the newest
+  revocation list, the held wallet record and its reliance bound are all
+  unchanged and would otherwise allow it
+
+#### Scenario: a superseded verification stays superseded
+
+- WHEN the verification that superseded another is itself revoked, or passes
+  its reliance bound
+- THEN the earlier verification is still refused as superseded
+- AND the supersession index keeps its entry
 
 #### Scenario: a verification past its reliance bound is not relied on
 
@@ -416,20 +453,22 @@ key that signed, and a custody reference of the form
 the held wallet record declares for that key under the closed custody registry.
 The relying domain SHALL be able to resolve that binding from a registry it
 runs or holds inside its own deployment, so that checking the proof contacts no
-service outside it. openWallet SHALL state what the signing key's custody
-evidences under the closed custody registry: a key whose declared custody
-evidences the HOLDER, which today is `isolated_per_use_authorized` alone,
-evidences that the practitioner acted, and only where each use is authorized on
-the device that holds the key, never by a code typed into the computer that asks
-for the signature; a proof from any other key evidences only the practitioner's
-environment. For a sign-off, that condition narrows the registry's own
-definition, under which the authorization may also be an external policy
-approval or a separate custodian. No record declares the narrower condition and
-nothing checks it: until openWallet defines a record of the evidence on which a
-key's custody is accepted, it is what the relying domain asks of a
-practitioner's key, and no proof or declaration shows it. The proof SHALL NOT
-state anything about the statement's content, the practitioner's licence or
-their authority. It SHALL NOT be presented as the
+service outside it. What the signing key's custody evidences is the closed
+custody registry's statement, which this profile neither restates nor narrows:
+a key whose declared custody evidences the HOLDER, which today is
+`isolated_per_use_authorized` alone, evidences that its holder acted, and a
+proof from any other key evidences only the holder's environment. Before it
+accepts a practitioner's sign-off of a medical decision, a relying domain SHALL
+ask more of the signing key than its declared custody: that each use is
+authorized by the practitioner on the device that holds the key, and not by a
+code typed into the computer that asks for the signature, nor by an approval or
+a custodian away from that device. That is the relying domain's acceptance rule
+for a sign-off, not a change to what the registry says custody evidences. No
+record declares it and nothing checks it yet: until openWallet defines a record
+of the evidence on which a key's custody is accepted, or a proof profile that
+reports how each use was authorized, no proof or declaration shows it. The
+proof SHALL NOT state anything about the statement's content, the
+practitioner's licence or their authority. It SHALL NOT be presented as the
 practitioner's consent to the statement: what the signer was shown, their
 re-authentication at signing, and which custody counts as per-use authorization
 are the relying domain's to evidence and decide.
@@ -457,6 +496,15 @@ are the relying domain's to evidence and decide.
 - THEN the proof evidences that the practitioner's environment acted, and not
   that the practitioner did
 - AND it is never presented as evidence that the practitioner acted
+
+#### Scenario: the sign-off acceptance rule leaves the registry as it is
+
+- WHEN a relying domain knows that a key declaring `isolated_per_use_authorized`
+  is authorized for each use by an approval or a custodian away from the device
+  that holds it
+- THEN the domain does not accept a practitioner's sign-off made with that key
+- AND the key's declared custody, and what the registry says that custody
+  evidences, are unchanged
 
 #### Scenario: possession is neither authority nor consent
 

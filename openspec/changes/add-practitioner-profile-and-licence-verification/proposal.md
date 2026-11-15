@@ -2,7 +2,7 @@
 code_surface: openWallet code leg (`opensoft/openWallet-code`), named here and performed by nothing in this change. A NEW contract family directory `contracts/openxwallet-practitioner-profile/` (its leg is Open question 7) holding a licence verification schema (kind `xfactory_wallet_licence_verification`), a verifier revocation list schema (kind `xfactory_wallet_licence_revocation_list`) and a relying domain's held verifier key schema (kind `xfactory_wallet_held_verifier_key`), with its README and synthetic positive and negative examples; `scripts/validate-openxwallet.py` (three new kinds, new ERROR codes in a `licence-verification-*` family, new requirement rows, no rename, no new WARNING); and one description sentence in `contracts/openxwallet/openxwallet-subject-attestation.schema.yaml`, which quotes the non-substrate rule and would otherwise omit its exception. No new proof profile: a sign-off uses the ratified `wallet-challenge-proof`. At the assembly root, the bookkeeping of a release. Every name here is PROPOSED (`design.md` D14), and nothing is reserved.
 target_release: unallocated. The realization is expected to be an ADDITIVE MINOR in which three owned members are added and one digested contract byte moves. Per the root AGENTS.md rule 5 the five coordinated values are allocated at realization and nothing is reserved here.
 Status: proposed
-Discussed: not discussed in session. Drafted on 2026-11-15 by Claude (Opus 5.5) on Brett Heap's ruling 153, as a draft for his review, and revised the same day after an independent review and a confirmation review; ratification pending.
+Discussed: not discussed in session. Drafted on 2026-11-15 by Claude (Opus 5.5) on Brett Heap's ruling 153, as a draft for his review, and revised the same day after an independent review, a confirmation review and a final check; ratification pending.
 ---
 
 # Proposal: add-practitioner-profile-and-licence-verification
@@ -75,20 +75,25 @@ capability `openxwallet`. No change to `openxwallet-agent-profile`.
      (`design.md` D2);
    - a verification is issued by a named verifier, in a signing domain of its
      own, over a recorded proof of possession from each key it names (D3);
-   - a relying domain holds verifier keys as records of its own, with provenance
-     its own administrator cannot forge alone, each delivered with its
-     verifier's newest revocation list, and a compromise time; only a key
-     delivered with a release supports the threat model's aim (D4);
+   - a relying domain holds verifier keys as records of its own, with a
+     recorded provenance (a release of the relying system, or two named
+     people), each delivered with its verifier's newest revocation list, and a
+     compromise time; only a key delivered with a release supports the threat
+     model's aim (D4);
    - a verification is checked inside the relying domain and never waits on an
-     outside service: an old revocation list flags a reliance and never blocks
-     it, and a raised item never goes to the signer alone (D5, D6);
+     outside service: the domain keeps every verification it receives and a
+     supersession index of them; an old revocation list flags a reliance and
+     never blocks it, and a raised item never goes to the signer alone (D5,
+     D6);
    - how it ends, checked at reliance, and which revocations reach a human (D6);
    - it is evidence about a licence, never identity or authority (D7);
    - a relying domain binds each sign-off key to its account itself, and takes
      its copy of the wallet record only from the practitioner (D8);
    - a practitioner's sign-off is a proof of possession, under the ratified
      possession-only profile, over the relying domain's statement digest; it is
-     not consent, and the key's custody says what it evidences (D9).
+     not consent, the key's custody says what the registry says it evidences,
+     and the relying domain asks for per-use authorization on the device as its
+     own acceptance rule (D9).
 2. **MODIFIED "The capability is an authority control, never an identity
    substrate"**: the one named exception of ruling 154, named by the act (a
    practitioner's sign-off of a medical decision, and the binding of that wallet
