@@ -1,0 +1,14 @@
+schema: spec-driven
+created: 2026-11-15
+origin:
+  kind: ruling
+  id: openWallet:ruling:2026-11-15-brett-heap-153
+  reason: >-
+    Brett Heap's ruling 153, accepted on 2026-11-15 with the words "accept your
+    recs for 152-194": "a practitioner profile carrying a licence verification in
+    openWallet, and a wallet-bound attestation in openSig, each as a draft for
+    your review." This change is the openWallet half. It also encodes rulings 154
+    and 183, which amend this leg's rule "The capability is an authority control,
+    never an identity substrate". The rulings' words are in design.md.
+  approved_by: pending — a draft held for Brett Heap (openWallet operator authority); nothing is ratified
+  approved_on: null
