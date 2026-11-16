@@ -10,8 +10,8 @@ first.
 ## 1. Governance
 
 - [ ] 1.1 One adversarial review of this revision at `Status: proposed` (an
-      independent review of the first draft at `4d32fa1` and a confirmation of
-      `fbb74f0` have run; their findings and dispositions are in `design.md`,
+      independent review of the first draft at `4d32fa1`, a confirmation of
+      `fbb74f0` and a confirmation of `caad224` have run; their findings and dispositions are in `design.md`,
       "Review record"), reading it against Web
       Authentication Level 3 (Recommendation of 25 August 2026), the
       IANA COSE Algorithms registry, the ratified `wallet-challenge-proof` and its

@@ -236,12 +236,15 @@ verification was performed at registration; the attestation format, the
 attestation object, the authenticator's model identifier where one was given, and
 the result of the domain's attestation policy, including that none was given;
 the basis of the key's declared custody; and the holder's declaration, made at
-registration, that the device and browser through which it registers the key, and
-through which it completes any verifier's session, are under its control and are
-not administered by the relying domain's operator, and, for a multi-device
-credential, that the account it syncs through is its own alone and is not
-administered by that operator. The binding SHALL NOT present that declaration as
-more than the holder's word. The signature counter and the current backup state SHALL
+registration, as `holder_declaration`, with `declared_at` and two parts: `client`,
+that the device, the browser and its extensions, the passkey provider and the
+authenticators the client uses, through which it registers the key and completes
+any verifier's session, and the place where the wallet record it presents is
+kept, are under its control and are not administered by the relying domain's
+operator; and `sync_account`, present only for a multi-device credential, that
+the account it syncs through is its own alone and is not administered by that
+operator. The binding SHALL NOT present that declaration as more than the
+holder's word. The signature counter and the current backup state SHALL
 be kept beside the binding, as the second requirement states. The wallet record
 SHALL declare the key with its reference, its fingerprint, its signature
 algorithm and its custody. A credential identifier already bound SHALL NOT be
@@ -274,17 +277,20 @@ openWallet SHALL let a party other than the relying party a credential is scoped
 to, such as a licence verifier, accept a proof of possession from that
 credential only in a session that party began with the holder's client itself,
 which the relying party neither began nor can join, in which that party
-identified the holder by its own means, independently of the relying party, and
-only from that client in that session: at an origin that party controls, which
+identified the holder by its own means, independently of the relying party and
+on evidence the relying party neither holds nor can obtain, and only from that
+client in that session: at an origin that party controls, which
 the relying party lists for that purpose as a related origin as Web
 Authentication Level 3 defines one, or through a native client of that party's,
 under the credential's relying-party identifier. Such a proof shows only that a
 client holding a credential scoped to the relying party signed at that party's
 page, and the relying party can register a credential of its own, so a proof
 that reached that party through the relying party, or outside such a session,
-SHALL NOT be accepted. That party SHALL record the holder's declaration that the
-client completing the session is under the holder's control and is not
-administered by the relying domain's operator. The profile cannot tell whether
+SHALL NOT be accepted. That party SHALL record its statement of the session as
+`identified_session`, with `began_at`, `identification_ref` and the holder's
+declaration for that session, `holder_declaration` with its `declared_at` and
+`client` parts, that the client completing the session is under the holder's
+control and is not administered by the relying domain's operator. The profile cannot tell whether
 that client, or the authenticator it uses, is administered by the relying
 domain's operator, and SHALL NOT be read as telling it. That party's binding has
 no registration behind it. It SHALL be made for that session only, SHALL allow
@@ -432,9 +438,10 @@ another party obtained and recorded, such as a licence verifier's proof of
 possession, from the proof and what is recorded with it: the relying-party
 identifier, the origin at which that party obtained it, the credential
 identifier, the public key, the backup eligibility and backup state the proof
-carries, and that party's statement that it obtained the proof in a session it
-began with the holder's client, which no relying party began or can join, and
-in which it identified the holder by its own means. The algorithm SHALL be the
+carries, and that party's statement of the session, `identified_session`, that
+it obtained the proof in a session it began with the holder's client, which no
+relying party began or can join, and in which it identified the holder by its
+own means, with the holder's declaration for that session in it. The algorithm SHALL be the
 one the record names or, where it names none, the proof's own `alg`, which the
 derived challenge binds. The relying domain SHALL recompute the challenge from
 the proof's fields; SHALL make every check of the second requirement on the
