@@ -9,8 +9,10 @@ first.
 
 ## 1. Governance
 
-- [ ] 1.1 One adversarial review of this change at `Status: proposed`, reading it
-      against Web Authentication Level 3 (Recommendation of 25 August 2026), the
+- [ ] 1.1 One adversarial review of this revision at `Status: proposed` (an
+      independent review of the first draft at `4d32fa1` has run; its findings
+      and their dispositions are in `design.md`), reading it against Web
+      Authentication Level 3 (Recommendation of 25 August 2026), the
       IANA COSE Algorithms registry, the ratified `wallet-challenge-proof` and its
       ratification record, the closed custody registry, openWallet-spec#10 and
       openSig-spec#4. The verdicts go into `design.md` with their dispositions.
@@ -25,22 +27,35 @@ first.
 ## 2. Contracts
 
 - [ ] 2.1 A proof schema for `openwallet.webauthn-proof.v0`: closed, at most 8192
-      bytes, the ten binding fields and the three byte fields of D1, in the leg
-      Open question 8 decides.
-- [ ] 2.2 The binding's added fields (D4), as a schema or as the registry's record.
+      bytes, the ten binding fields (`alg` a JSON integer, `-7` or `-8`) and the
+      three byte fields of D1, in the leg Open question 8 decides.
+- [ ] 2.2 The binding's added fields (D4), the basis of custody among them, as a
+      schema or as the registry's record, with the signature counter, the
+      current backup state and each proof's counter flag kept beside the
+      binding, outside its revisioned record (D2).
 - [ ] 2.3 Synthetic examples only: no real credential, key, origin or person.
 
 ## 3. Runtime and validator
 
-- [ ] 3.1 A verifier making every check of D2, with no network call and no state of
-      its own, returning the verified facts, both backup flags and the counter flag.
-- [ ] 3.2 P-256 (ES256, strict DER, on-curve check) and Ed25519 verification; the
+- [ ] 3.1 A verifier making every check of D2, the binding's state among them, with
+      no network call and no state of its own, returning the verified facts, both
+      backup flags and the counter flag, which it compares only at a proof's first
+      verification.
+- [ ] 3.2 P-256 (ES256, strict DER, on-curve check) and Ed25519 (canonical S)
+      verification; the
       canonical validator recognizes the P-256 multicodec and recomputes its
       fingerprint over the 33-byte compressed point (D3).
-- [ ] 3.3 Known-answer vectors from independent tooling, including Level 3's own
-      examples (its §16), and negative vectors for each refusal of D2 and D3.
-- [ ] 3.4 Registration (D4): a binding only after a registration and a proof in
-      the same session; a credential identifier bound once.
+- [ ] 3.3 Known-answer vectors from independent tooling over derived challenges,
+      and negative vectors for each refusal of D2 and D3; Level 3's own examples
+      (its §16) only as signature-level vectors and as negative vectors for user
+      verification and cross-origin use (D11).
+- [ ] 3.4 Registration (D4): `-8` and `-7` offered; a binding only after a
+      registration and a proof in the same session; a credential identifier
+      bound once; no multi-device credential bound while no model of the
+      registry describes it (D7).
+- [ ] 3.5 A party other than the relying party accepts a proof only in a session
+      in which it identified the holder, never a relayed one; and the check of a
+      recorded proof (D5).
 
 ## 4. Composition
 

@@ -41,27 +41,36 @@ there for the owner.
 ## What Changes
 
 One NEW capability, `wallet-webauthn-proof`, a sibling of the ratified
-`wallet-challenge-proof`. Eight requirements:
+`wallet-challenge-proof`. Nine requirements:
 
 - a proof is a Web Authentication assertion whose challenge is derived from the
   proof's binding fields, so it binds what the ratified profile binds and also the
-  relying party (D1);
+  relying party; the binding comes only from the trusted registry and must be
+  current, unrevoked and time valid; the challenge issuer draws the statement's
+  32-byte single-use reference at random, server-side (D1, D2);
 - every use is checked for its type, challenge, exact origin, relying-party
-  identifier, user presence and user verification, and backup flags; a counter
-  that does not increase is flagged, not refused (D2);
-- ES256 and EdDSA with Ed25519 only (D3);
+  identifier, user presence and user verification, and backup flags, with no
+  repeated member in the client data; the counter and backup state are kept beside
+  the binding, and a counter that does not increase is flagged once, not refused
+  (D2);
+- ES256 and EdDSA with Ed25519 only, one integer spelling of each in a proof (D3);
 - a credential is bound from a registration and a following proof in the
   holder's own session, and works only at the relying party it is scoped to (D4);
-- a party other than that relying party, such as a licence verifier, observes a
-  key's proof of possession itself, through a related origin; a relayed proof is
-  recorded as relayed (D5);
+- a party other than that relying party, such as a licence verifier, accepts a
+  key's proof of possession only within a session in which it identified the
+  holder itself, independently of the relying party; a relayed proof is never
+  accepted (D5);
 - the profile tells a synced passkey from a device-bound key by the backup flags,
-  and says what it cannot tell, among it which device signed (D6);
-- a credential's custody is declared with its backup eligibility beside it; a
-  security key may declare `isolated_per_use_authorized`, and a synced passkey's
-  model is an open question (D7);
+  and says what it cannot tell, among it which device signed and who controls the
+  account a passkey syncs through (D6);
+- a credential's custody is declared with its backup eligibility and the basis of
+  the declaration, attested or the holder's word, beside it; a security key may
+  declare `isolated_per_use_authorized`; no synced passkey is bound until the
+  registry has a model for it (D7);
 - a verified proof is possession bound to a relying party, and no more: it never
-  shows that the holder saw the statement (D8).
+  shows that the holder saw the statement (D8);
+- a relying domain checks a proof another party recorded from what is recorded
+  with it (D5).
 
 ## What this change depends on, and what it composes with
 
@@ -90,4 +99,5 @@ unchanged. No finding code is renamed, repurposed or reclassified.
 - **openChart**: can make a practitioner's sign-off with a passkey or security key
   once this change and the two drafts above are ratified and realized; ruling 152
   keeps every decision off until then. It evidences device enrolment itself
-  (ruling 209; D6).
+  (ruling 209; D6). A synced passkey can be bound only once the custody registry
+  has a model for it (D7, Open question 1).
