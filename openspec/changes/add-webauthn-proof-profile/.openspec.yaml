@@ -1,0 +1,14 @@
+schema: spec-driven
+created: 2026-11-15
+origin:
+  kind: ruling
+  id: openWallet:ruling:2026-11-15-brett-heap-208
+  reason: >-
+    Brett Heap's ruling 208, accepted on 2026-11-15 with the words "accept your
+    recs for 195-214": "A passkey or security key. Draft that change now. A smart
+    card cannot be used from a phone." This change is that proof format. As this
+    change reads ruling 209 (PROPOSED), it also gives a relying domain the means
+    to tell a synced passkey from a device-bound key, and says what it cannot
+    tell. The rulings' words are in design.md.
+  approved_by: pending — a draft held for Brett Heap (openWallet operator authority); nothing is ratified
+  approved_on: null
