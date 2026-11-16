@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@2bb3d5fa08c9922dcfd746bb269705d5457ec20a; do not edit here.
+# VENDORED from opensoft/openXfactory@e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Run OpenSpec strict validation through the PINNED CLI, and refuse otherwise.
@@ -1478,7 +1478,11 @@ def fetch_artifact(package: str, version: str, destination: Path,
 def seed_supplied_artifact(directory_fd: int, anchored: Path,
                            payload: bytes, npm: str) -> None:
     """Seed npm from the exact authenticated bytes, never the mutable input path."""
-    _write_new_leaf(directory_fd, "verified-cli.tgz", payload)
+    try:
+        _write_new_leaf(directory_fd, "verified-cli.tgz", payload)
+    except OSError as exc:
+        raise PinRefusal(
+            "pin-unresolvable", "staging the verified supplied artifact failed") from exc
     result = _run(
         [npm, "cache", "add", str(anchored / "verified-cli.tgz"),
          "--ignore-scripts", "--no-audit", "--no-fund"], cwd=str(anchored))

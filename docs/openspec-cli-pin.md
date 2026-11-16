@@ -1,3 +1,7 @@
+## Prepared storage-error follow-up e0e0b9a31ec8
+
+The candidate source is openXfactory PR #1333 at e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; main admission remains pending. This extends the authenticated supplied-artifact repair with a structured refusal for staging write or sync failures. The provider suite passes all 193 cases, including disk-full and quota regressions before npm is invoked. The verifier body SHA-256 is 6498736d58ae5b5c08835375f680082622882e5ed815dd84ab32ef3e47d00bf0. The other three provider bodies, CLI version, dependency lock and committed tarball are unchanged. Earlier records below remain historical evidence.
+
 # Wallet #73 supplied-artifact correction (2026-11-16)
 
 Status: prepared; provider #1333 main admission pending.
