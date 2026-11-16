@@ -1,3 +1,17 @@
+## Provider main admission (2026-11-16)
+
+openXfactory #1333 is merged at 828d88c2ca9d7bcf551e1759c847a9789c5c2066.
+The qualified source e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de is an ancestor
+of that main commit. All four common files and the complete provider test
+selection are byte-identical between the reviewed source and admitted main.
+Every applicable PR check, including full pytest and Sonar analysis, passed;
+Sourcery was separately skipped. All nine local expert roles and the fresh
+hosted Codex review were clear at that exact source head.
+
+The current consumer bodies retain their qualified e0e0b9a headers and hashes.
+Nine leg tests plus six subtests and all seven strict CLI items passed.
+The earlier preparation/admission states below remain historical receipts.
+
 ## Prepared storage-error follow-up e0e0b9a31ec8
 
 The candidate source is openXfactory PR #1333 at e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; main admission remains pending. This extends the authenticated supplied-artifact repair with a structured refusal for staging write or sync failures. The provider suite passes all 193 cases, including disk-full and quota regressions before npm is invoked. The verifier body SHA-256 is 6498736d58ae5b5c08835375f680082622882e5ed815dd84ab32ef3e47d00bf0. The other three provider bodies, CLI version, dependency lock and committed tarball are unchanged. Earlier records below remain historical evidence.
