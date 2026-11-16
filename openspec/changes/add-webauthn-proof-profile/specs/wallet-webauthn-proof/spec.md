@@ -277,33 +277,35 @@ openWallet SHALL let a party other than the relying party a credential is scoped
 to, such as a licence verifier, accept a proof of possession from that
 credential only in a session that party began with the holder's client itself,
 which the relying party neither began nor can join, in which that party
-identified the holder by its own means, independently of the relying party and
-on evidence the relying party neither holds nor can obtain, and only from that
-client in that session: at an origin that party controls, which
+identified the holder by its own means, independently of the relying party, and
+only from that client in that session: at an origin that party controls, which
 the relying party lists for that purpose as a related origin as Web
 Authentication Level 3 defines one, or through a native client of that party's,
 under the credential's relying-party identifier. Such a proof shows only that a
 client holding a credential scoped to the relying party signed at that party's
 page, and the relying party can register a credential of its own, so a proof
 that reached that party through the relying party, or outside such a session,
-SHALL NOT be accepted. That party SHALL record its statement of the session as
-`identified_session`, with `began_at`, `identification_ref` and the holder's
-declaration for that session, `holder_declaration` with its `declared_at` and
-`client` parts, that the client completing the session is under the holder's
-control and is not administered by the relying domain's operator. The profile cannot tell whether
-that client, or the authenticator it uses, is administered by the relying
-domain's operator, and SHALL NOT be read as telling it. That party's binding has
-no registration behind it. It SHALL be made for that session only, SHALL allow
-that party's own origin only, SHALL record the relying-party identifier, the
-credential identifier as the holder presents it, and the backup eligibility and
-backup state the proof carries, and SHALL take the public key and algorithm from
-the key the holder's wallet record declares, or from one the holder presents
-whose fingerprint the record declares, so that a proof from any other credential
-does not verify under it. Every check of
-the second requirement SHALL apply to it, except that backup eligibility is
-recorded from the proof rather than compared with a registration, and no
-signature counter is compared. A relying party SHALL NOT allow, for its own
-purposes, an origin it listed for another party.
+SHALL NOT be accepted. That party SHALL identify the holder by its own means,
+independently of the relying party, and SHALL NOT rest that identification on
+evidence a relying domain holds or could obtain, such as copies of documents,
+the licence number or personal data from its records. That party SHALL record
+its statement of the session as `identified_session`, with `began_at`,
+`identification_ref` and the holder's declaration for that session,
+`holder_declaration` with its `declared_at` and `client` parts, that the client
+completing the session is under the holder's control and is not administered by
+the relying domain's operator. The profile cannot tell whether that client, or
+the authenticator it uses, is administered by the relying domain's operator, and
+SHALL NOT be read as telling it. That party's binding has no registration behind
+it. It SHALL be made for that session only, SHALL allow that party's own origin
+only, SHALL record the relying-party identifier, the credential identifier as
+the holder presents it, and the backup eligibility and backup state the proof
+carries, and SHALL take the public key and algorithm from the key the holder's
+wallet record declares, or from one the holder presents whose fingerprint the
+record declares, so that a proof from any other credential does not verify under
+it. Every check of the second requirement SHALL apply to it, except that backup
+eligibility is recorded from the proof rather than compared with a registration,
+and no signature counter is compared. A relying party SHALL NOT allow, for its
+own purposes, an origin it listed for another party.
 
 #### Scenario: the verifier's page obtains the proof itself, in its identified session
 
