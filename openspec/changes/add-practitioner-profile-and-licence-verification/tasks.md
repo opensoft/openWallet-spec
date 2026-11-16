@@ -17,11 +17,12 @@ ruling first.
       openChart-spec#5's sign-off (CA-04, AU-03, AU-07, EN-06), openSig's
       draft `add-wallet-bound-attestation` and openWallet's draft
       `add-webauthn-proof-profile`. The verdicts go into `design.md` as
-      returned, each with its disposition. Five reviews have already run: an
+      returned, each with its disposition. Seven reviews have already run: an
       independent review of the first draft at `8aa0364`, a confirmation review
       of the revision at `169120e`, a final check of `7442ea5` with an
       automated review, a confirmation of `4cfef0a` with a second automated
-      review, and an independent review of `484dd16`.
+      review, an independent review of `484dd16`, a confirmation of `834db41` and a
+      confirmation of `5397d12`.
 - [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the open questions still open in
       `design.md` ("Open questions for ratification"; rulings 208 to 214 closed
       1 to 4 and 9, and each closed one lists what stays PROPOSED), and dispose of
