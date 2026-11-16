@@ -75,9 +75,7 @@ makes proofs in; for a passkey or a security key that profile is
 verifier observes the proof when the key is scoped to another party's relying
 party identifier. The verifier SHALL obtain each such proof in a session it
 began with the licensee's client itself, which no relying domain began or can
-join, and in which it identified the licensee by its own means, independently of
-any relying domain and on evidence no relying domain holds or can obtain; SHALL
-record the licensee's declaration that the client is under the licensee's
+join, and in which it identified the licensee by its own means, independently of any relying domain, and SHALL NOT rest that identification on evidence a relying domain holds or could obtain, such as copies of documents, the licence number or personal data from its records; SHALL record the licensee's declaration that the client is under the licensee's
 control and is not administered by a relying domain's operator; and SHALL NOT
 name a key on a proof relayed to it through a relying domain. It cannot tell
 whether that client, or the authenticator it uses, is administered by a relying
