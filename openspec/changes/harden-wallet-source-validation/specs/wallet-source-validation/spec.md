@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: Complete source acceptance
-The maintenance analysis SHALL retain its complete source scope, all six existing Sonar way conditions, existing runtime matrix and real executed-test coverage. No rule suppression, threshold reduction, false coverage, billing change or operational activation is permitted.
+Neutral validation SHALL retain the existing source tests, syntax/plain/strict checks and pinned OpenSpec checks. Its openXwallet consumer's complete-assembly analysis SHALL retain all six Sonar way conditions, full scope, runtime matrix and real executed-test coverage. No rule suppression, threshold reduction, false coverage, billing change or operational activation is permitted.
 
 #### Scenario: Published main acceptance
-- **WHEN** the repair is merged
-- **THEN** the recorded main revision SHALL have a completed analysis with the justified retained baseline, evaluated coverage, and unchanged gate conditions.
+- **WHEN** the neutral repair is merged
+- **THEN** its exact revisions SHALL pass their owning validations and be handed to openXwallet #73; the consumer's baseline, evaluated coverage and complete main gate remain its separate acceptance obligation.
 
 ### Requirement: Owned and reproducible repairs
 Shared files SHALL be fixed at their owners, consumed through coherent immutable pins and verified provenance, and original findings SHALL close through source analysis.

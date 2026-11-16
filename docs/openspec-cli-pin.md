@@ -1,6 +1,10 @@
 # Wallet #73 checksum and trust-boundary maintenance (2026-11-16)
 
-Status: draft; provider-main admission pending.
+Status: provider admitted; neutral root and consumer acceptance pending.
+
+Provider main 4dd7c73daa3fd6dbbd25f39c1d5ff72ca8d7d1c2 merged the reviewed
+371809285508ad4eb53d415103ecddaec5588938 head on 2026-11-16. Its ancestry
+and unchanged common tooling bodies were verified before consumption.
 
 Provider: opensoft/openXfactory@371809285508ad4eb53d415103ecddaec5588938.
 The existing mandatory SHA-512 authentication and 80-package verified closure
