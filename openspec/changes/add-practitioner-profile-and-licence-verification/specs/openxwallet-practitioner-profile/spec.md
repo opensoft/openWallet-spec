@@ -73,16 +73,20 @@ challenge the verifier issued for that purpose, in the proof profile that key
 makes proofs in; for a passkey or a security key that profile is
 `wallet-webauthn-proof`, and change `add-webauthn-proof-profile` states how a
 verifier observes the proof when the key is scoped to another party's relying
-party identifier. The verifier SHALL obtain each such proof within the session
-in which it identified the licensee by its own means, independently of any
-relying domain, and SHALL NOT name a key on a proof relayed to it through a
-relying domain. The verification SHALL record, for each such key, the key's
-reference, its fingerprint, its public key, the proof itself and when it was
-made, and, for a proof under `wallet-webauthn-proof`, the relying-party
-identifier, the origin at which the verifier obtained it, the credential
-identifier, the backup flags the proof carries, and the verifier's statement
-that it obtained the proof within the session in which it identified the
-licensee. A relying domain SHALL check each recorded proof whenever it checks
+party identifier. The verifier SHALL obtain each such proof in a session it
+began with the licensee's client itself, which no relying domain began or can
+join, and in which it identified the licensee by its own means, independently of
+any relying domain; SHALL record the licensee's declaration that the client is
+under the licensee's control and is not administered by a relying domain's
+operator; and SHALL NOT name a key on a proof relayed to it through a relying
+domain. It cannot tell whether that client is administered by a relying domain's
+operator. The verification SHALL record, for each such key, the key's reference,
+its fingerprint, its public key, the proof itself and when it was made, and, for
+a proof under `wallet-webauthn-proof`, `rp_id`, `origin`, `credential_id`,
+`backup_eligible`, `backup_state` and `identified_session`: the relying-party
+identifier, the origin at which the verifier obtained the proof, the credential
+identifier, the backup flags the proof carries, and the verifier's statement that
+it obtained the proof in such a session, with the licensee's declaration. A relying domain SHALL check each recorded proof whenever it checks
 the verification: that the proof verifies, under its own profile, under the
 recorded public key, and, for a proof under `wallet-webauthn-proof`, passes that
 profile's check of a recorded proof; that the proof names the recorded key
@@ -127,8 +131,9 @@ record, and the verification SHALL reference it.
 #### Scenario: a key is named only on a proof made in the verifier's identified session
 
 - WHEN a verifier holds a proof of possession from a key that reached it through
-  a relying domain, or outside a session in which it identified the licensee by
-  its own means
+  a relying domain, or outside a session it began with the licensee's client and
+  in which it identified the licensee by its own means, or in a session a
+  relying domain began or can join
 - THEN it does not name that key in a verification
 
 #### Scenario: a recorded passkey proof is checked with what is recorded with it
@@ -139,7 +144,7 @@ record, and the verification SHALL reference it.
   identifier and backup flags recorded with it, as `add-webauthn-proof-profile`
   defines the check of a recorded proof
 - AND a recorded passkey proof without the verifier's statement of an identified
-  session is refused as a proof that does not verify
+  session is refused as `identified_session_missing`
 
 #### Scenario: the relying domain checks each recorded proof
 
@@ -273,8 +278,10 @@ same licence, for the same wallet, from the same verifier; is revoked by any
 revocation it has received; is bound to another wallet, or does not name the key that
 made the sign-off; is signed by a verifier key it does not hold, holds as
 suspended, revoked or compromised, or holds for licensing authorities other than
-the one the verification names; or whose signature does not verify, or any
-proof of possession it records fails its check. A verification is not checkable only
+the one the verification names; whose signature does not verify, or any proof
+of possession it records fails its check; or whose passkey proof is recorded
+without the verifier's statement of an identified session, which it SHALL refuse
+as `identified_session_missing`. A verification is not checkable only
 where the domain holds nothing to check it with: no revocation list at all from
 its verifier, or no record of the bound wallet. That is cured by the deployment
 obtaining what it lacks, never by the signer.

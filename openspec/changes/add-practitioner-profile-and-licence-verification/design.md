@@ -214,7 +214,7 @@ The fields, at the level the requirement binds. The schema is realization work
 |---|---|
 | `verification_id` | The record's identity, a random value, so that a published revocation list cannot be linked to a person. A duplicate is refused under the existing `record-id-duplicate`. |
 | `subject.wallet_ref`, `subject.did` | The bound wallet: its `wallet_id`, and the DID of its primary key reference. |
-| `subject.keys[]` | Every key the verification covers: its reference (`<did>#<key_id>`), its `key_fingerprint`, its public key, the proof of possession it made over the verifier's challenge, and when (D3). |
+| `subject.keys[]` | Every key the verification covers: its reference (`<did>#<key_id>`), its `key_fingerprint`, its public key, the proof of possession it made over the verifier's challenge, and when (D3). For a proof under `wallet-webauthn-proof`, also `rp_id` (the relying-party identifier), `origin` (where the verifier obtained it), `credential_id`, `backup_eligible` and `backup_state` (the flags the proof carries, in the passkey profile's names), and `identified_session` (the verifier's statement of the session, D3). The algorithm is the proof's own `alg`, which its derived challenge binds. |
 | `licence.authority` | The licensing authority, by an identifier the relying domain's held verifier key is scoped to (D4). |
 | `licence.jurisdiction` | Where the authority licenses: an ISO 3166-1 alpha-2 country code, or an ISO 3166-2 subdivision code. |
 | `licence.licence_id` | The authority's own identifier for the licence, as issued (see "The licence identifier is carried in clear" below). |
@@ -305,15 +305,20 @@ related-origin ceremony (Level 3, §5.11), in which the verifier's own page asks
 the practitioner's key, under the deployment's relying-party identifier, to sign
 the verifier's challenge.
 
-**The verifier identifies the licensee itself, in the session in which each key
-proves possession** (PROPOSED). A proof at the verifier's page shows only that a
-client holding a credential scoped to the deployment signed there. The
+**The verifier identifies the licensee itself, in a session it began with the
+practitioner's client** (PROPOSED). A proof at the verifier's page shows only
+that a client holding a credential scoped to the deployment signed there. The
 deployment is that relying party: it can register a credential of its own and
-present it at the verifier's page with a wallet record it supplies, and a native
-client writes whatever origin it likes into the client data. So the verifier
-obtains each proof within the session in which it identified the licensee by its
-own means, independently of the deployment, and names a key only on such a
-proof. A proof relayed through the deployment would show the verifier only what
+present it at the verifier's page with a wallet record it supplies; a native
+client writes whatever origin it likes into the client data; and a deployment
+that can start or join the verifier's session can complete the key step from a
+client of its own. So the verifier obtains each proof in a session it began with
+the practitioner's client itself, which the deployment neither began nor can
+join, in which it identified the licensee by its own means, independently of the
+deployment, and names a key only on such a proof. It records the practitioner's
+declaration that the client is under their control and is not administered by
+the practice. The verifier cannot tell whether that client, or the authenticator
+it uses, is administered by the practice (D8). A proof relayed through the deployment would show the verifier only what
 the deployment chose to relay, so the link between the key and the person would
 then rest on the deployment; it can never meet the condition, and no
 verification names a key on one (D8).
@@ -322,8 +327,10 @@ The verification records, for each key, the key's reference, fingerprint and
 public key, the proof itself and when it was made, and, for a proof under
 `wallet-webauthn-proof`, what checking it needs: the relying-party identifier,
 the origin at which the verifier obtained it, the credential identifier, the
-backup flags it carries, and the verifier's statement that it obtained it within
-the session in which it identified the licensee. Anyone holding the verification
+backup flags it carries, and the verifier's statement that it obtained it in a
+session it began with the practitioner's client, which no relying domain began or
+can join, in which it identified the licensee, with the practitioner's
+declaration about that client; D2 names these fields. Anyone holding the verification
 can then check that the proof verifies under that public key and that its
 fingerprint is the one named. A verification
 covers exactly the keys it names. The binding to keys is the verifier's claim,
@@ -339,9 +346,10 @@ where the domain bound that key itself, against its own relying-party identifier
 and the credential it bound (`add-webauthn-proof-profile`, D5); the proof names
 the recorded key reference and the wallet the verification is bound to (its
 `wallet_ref` equals `subject.wallet_ref`); and the recorded fingerprint is that
-key's. A verification with a proof that fails any of these, or a passkey proof
-recorded without the verifier's statement of an identified session, is refused
-as `signature_invalid` (D5); the validator can check the two references
+key's. A verification with a proof that fails any of these is refused as
+`signature_invalid`, and one whose passkey proof is recorded without the
+verifier's statement of an identified session as `identified_session_missing`
+(D5); the validator can check the two references
 statically (`tasks.md` 3.2). The domain cannot check the verifier's challenge,
 its identification of the licensee or its binding of the key, which are the
 verifier's own, and a recorded proof never binds a key to an account in the
@@ -514,8 +522,12 @@ age, the provenance of the verifier key (D4) and, past the freshness bound, a
 flag; `refused`, with a reason from a closed list (`reliance_bound_passed`,
 `superseded`, `revoked`, `wallet_mismatch`, `key_not_covered`,
 `verifier_not_held`, `verifier_not_held_for_authority`, `verifier_not_active`,
-`verifier_compromised`, `signature_invalid`, `wallet_not_active`,
-`status_not_accepted`), where `verifier_not_held_for_authority` means the domain
+`verifier_compromised`, `signature_invalid`, `identified_session_missing`,
+`wallet_not_active`, `status_not_accepted`), where `identified_session_missing`
+means that a passkey proof the verification records lacks the verifier's
+statement that it obtained the proof in a session it began with the
+practitioner's client, in which it identified the licensee (D3), and where
+`verifier_not_held_for_authority` means the domain
 holds the verifier key, but not for the licensing authority the verification
 names (D4), and where
 `signature_invalid` means that the verifier's signature does not verify, or
@@ -718,9 +730,11 @@ keys from a release of the relying system. So the aim holds only for a sign-off
 whose licence verification is signed by a verifier key that ships with a
 release; a reliance on a key that two people added is recorded as such and falls
 outside it (D4). It holds, too, only where the verifier identified the licensee
-itself, by its own means and independently of the deployment, in the session in
-which each named key proved possession (D3); a proof relayed through the
-deployment cannot show that, so no verification names a key on one. Every
+itself, by its own means and independently of the deployment, in a session it
+began with the practitioner's client, which the deployment neither began nor
+can join, and in which each named key proved possession (D3); a proof relayed
+through the deployment cannot show that, so no verification names a key on
+one. Every
 sentence below was checked against the ruling's words.
 
 **Who the signer is.** A sign-off shows which licence holder's key signed, as the
@@ -737,8 +751,8 @@ and a relying domain raises any difference between that licence and its own
 licence record for the account (requirement on evidence about a licence). The
 profile binds a key to a licence holder; it does not bind an account to a
 person, and does not claim to. Ruling 214's words hold as written under this
-reading, on the conditions this section states, and short of a synced passkey's
-account, a limit below.
+reading, on the conditions this section states, and short of a client, device
+or provider the practice administers, a limit below.
 
 **What reaches it:**
 
@@ -748,14 +762,16 @@ account, a limit below.
   on it falls outside the aim. A key someone adds to the held wallet record
   later is covered by nothing.
 - **The verifier identified the licensee itself,** by its own means and
-  independently of the deployment, in the session in which each named key
-  proved possession (D3). A related-origin proof shows only that a client holding
-  a credential scoped to the deployment signed at the verifier's page; the
-  deployment is that relying party and can register a credential of its own, and
-  a native client writes whatever origin it likes, so only the verifier's own
-  identification ties the key to the licensee. That identification is the
-  verifier's record, which a relying domain cannot check, and a relayed proof
-  never meets it.
+  independently of the deployment, in a session it began with the
+  practitioner's client, which the deployment neither began nor can join, and in
+  which each named key proved possession (D3). A related-origin proof shows only
+  that a client holding a credential scoped to the deployment signed at the
+  verifier's page; the deployment is that relying party and can register a
+  credential of its own, and a native client writes whatever origin it likes, so
+  only the verifier's own identification, in a session the deployment cannot
+  enter, ties the key to the licensee, and only as far as the client is the
+  practitioner's own. That identification is the verifier's record, which a
+  relying domain cannot check, and a relayed proof never meets it.
 - **Each sign-off key is bound individually,** by that key's own proof of
   possession, over the domain's challenge, in the practitioner's own session.
 - **The held wallet record comes only from the practitioner.** The domain takes it
@@ -792,17 +808,25 @@ shows the verifier only what the deployment chose to forward, possibly a proof
 from a key of its own. The aim does not hold for it, so no verification names a
 key on one (D3).
 
-**A synced passkey's account.** Whoever controls or can recover the account a
-synced passkey syncs through, such as a managed work account the practice
-administers, can obtain the passkey on a device of their own and sign with the
-practitioner's own key without the practitioner. Under this reading that is not
-a forgery, because the key is the practitioner's, yet it is what the ruling asks
-about. Neither profile can see which account holds a passkey; the passkey
-profile records the practitioner's declaration that the account is theirs alone
-and is not administered by the practice, and puts the limit to the owner
-(`add-webauthn-proof-profile`, its Open question 12). No synced passkey can be
-bound there until the custody registry has a model for it (its Open question
-1).
+**A client, device or provider the practice administers.** Whoever administers
+or can recover the device, the browser, an extension in it, or the passkey
+provider that the practitioner uses to register a key or to complete the
+verifier's session can act without the practitioner. It can answer the
+verifier's request with a credential it registered under the deployment's
+identifier and submit a wallet record declaring that key; an assertion carries
+no attestation, so the verifier cannot tell. Where the practitioner registered
+through such a browser, every later sign-off can be made without them, which is
+a forgery even under this reading, and an honest check accepts it. Through a
+synced passkey's account, such as a managed work account the practice
+administers, it can sign with the practitioner's own key, which under this
+reading is not a forgery, yet is what the ruling asks about. Neither profile can
+see who administers a client or which account holds a passkey. The passkey
+profile records the practitioner's one declaration, at registration and for the
+verifier's session, that the device, the browser and any sync account are theirs
+and are not administered by the practice, and puts the limit to the owner
+(`add-webauthn-proof-profile`, its Open questions 12 and 15). No synced passkey
+can be bound there until the custody registry has a model for it (its Open
+question 1).
 
 **The supersession index under the same threat** (D5). The index is one of the
 domain's records, so whoever can alter them can add an entry, which refuses a
@@ -1201,17 +1225,23 @@ practitioner's name made without that practitioner's key; the practitioner is
 the licence holder the relied-on verification names; and an honest check is
 one run on a copy of the records with the verifier keys from a release of the
 relying system. The aim holds only where the verifier identified the licensee
-itself, by its own means and independently of the deployment, in the session in
-which each key the verification names proved possession; a proof relayed through
-the deployment cannot show that, so no verification names a key on one. Limits
+itself, by its own means and independently of the deployment, in a session it
+began with the practitioner's client itself, which the deployment neither began
+nor can join, and in which each key the verification names proved possession; a
+proof relayed through the deployment cannot show that, so no verification names
+a key on one. Limits
 beyond the ruling's words (PROPOSED): whoever runs the deployment can also hide
 records, withhold revocation lists, run altered software that skips the checks,
 refuse service, show the account a decision is filed under as someone else's,
 and show the practitioner one statement while the key signs another, because no
-key in either proof profile shows its holder what it signs; and whoever controls
-or can recover the account a synced passkey syncs through, such as a managed
-work account the practice administers, can sign with the practitioner's own key
-without the practitioner, which neither profile can see.
+key in either proof profile shows its holder what it signs; and whoever
+administers or can recover the device, the browser, an extension in it, or the
+passkey provider that the practitioner uses to register a key or to complete the
+verifier's session, a synced passkey's account among them, can act without the
+practitioner: it can answer the verifier with a credential it registered, or
+sign with a synced passkey, and neither profile can see it. The practitioner
+declares that these are theirs and not administered by the practice, and the
+declaration is recorded; it is their word.
 
 | Question | The answer both drafts give |
 |---|---|
@@ -1219,7 +1249,7 @@ without the practitioner, which neither profile can see.
 | Who the signer is | The licence holder whose licence the relied-on verification names, for a key it names. Which account the relying party shows a decision under is its own record, which whoever runs the deployment can alter. An honest check reports the signer from the verification's licence fields, never from the account, and the relying party raises any difference between that licence and its own record of the account's licence. |
 | What identifies a key | The pair (`did`, `key_id`) under which the wallet declares it, and its `key_fingerprint`: `sha256:` and the lowercase hex SHA-256 of the raw public key, openWallet's one spelling; for a passkey's P-256 key, openWallet's draft passkey profile fixes the raw form. It is `key_ref` in a proof, written as the DID URL `<did>#<key_id>`. An attestation records the reference as the proof gave it and, where openSig found a binding, the fingerprint recomputed from the public key that binding named; it never fills from the proof a value it did not resolve. |
 | Which keys may make a sign-off | Only a key that the relying party bound to the practitioner's account individually, by that key's own proof of possession in the practitioner's own session, and whose fingerprint a licence verification in force names. The relying party takes its held copy of the wallet record only from the practitioner, and no administrator adds a key to it. Each bound key has its own binding; with a registry that keeps one current binding per subject, the subject is that account's binding of that key. Replacing a key is a new binding and needs a verification that names the new key. |
-| What custody a key declares | One model of openWallet's closed custody registry (`openxwallet-custody`, registry version 1), declared for that key in its wallet record: `holder_readable`, `isolated_invocable` or `isolated_per_use_authorized`. In a binding used for a sign-off, the custody reference is `openxwallet-custody:<registry_version>:<model>` and equals the model the held wallet record declares for that key; openSig's `custody_reference_mismatch` compares those two. Under the registry, as ratified, only `isolated_per_use_authorized` evidences that the holder acted: each use needs an authorization the holder's execution context cannot itself supply, for which the registry names "a hardware presence check, an external policy approval, a separate custodian". A wallet may declare such a key only if its own custody is the same model, because no declared key may outrank its wallet. A declaration is not proof: neither openWallet's proof nor openSig's attestation shows that a key's custody is what the wallet declares; a custody-acceptance record could show that for a key, and openWallet's draft passkey profile records whether a declaration rests on attestation evidence or on the holder's word. How each use was authorized is shown only under `wallet-webauthn-proof`, whose user-verification flag shows that verification happened on the authenticator, as far as the authenticator is trusted; under the ratified profile nothing shows it. |
+| What custody a key declares | One model of openWallet's closed custody registry (`openxwallet-custody`, registry version 1), declared for that key in its wallet record: `holder_readable`, `isolated_invocable` or `isolated_per_use_authorized`. In a binding used for a sign-off, the custody reference is `openxwallet-custody:<registry_version>:<model>` and equals the model the held wallet record declares for that key; openSig's `custody_reference_mismatch` compares those two. Under the registry, as ratified, only `isolated_per_use_authorized` evidences that the holder acted: each use needs an authorization the holder's execution context cannot itself supply, for which the registry names "a hardware presence check, an external policy approval, a separate custodian". A wallet may declare such a key only if its own custody is the same model, because no declared key may outrank its wallet. A declaration is not proof: neither openWallet's proof nor openSig's attestation shows that a key's custody is what the wallet declares; a custody-acceptance record could show that for a key, and openWallet's draft passkey profile records whether a declaration rests on attestation evidence or on the holder's word, keeping the attestation object; until a check verifies that object against a root it trusts, `attested` is the relying party's own claim. How each use was authorized is shown only under `wallet-webauthn-proof`, whose user-verification flag shows that verification happened on the authenticator, as far as the authenticator is trusted; under the ratified profile nothing shows it. |
 | Which custody a sign-off needs | The relying party decides, and states which custody it accepts for a practitioner's sign-off. What more it asks of a key, such as each use authorized by the practitioner on the device that holds the key and never by a code typed into the computer that asks for the signature, is an acceptance rule of its own, which leaves the registry's statement as it is. For openChart, ruling 209: "Yes, but only on a device the practitioner has enrolled, as ruling 134 allows for approvals. A security key always counts. Controlled substances stay out (ruling 83) and would need stronger keys." Enrolling a device is the relying party's. No model of the registry as written describes a synced passkey, so openWallet's draft passkey profile binds none until one does, and the yes for a synced passkey waits on that (its Open question 1). openSig records the model the key declares, and for a passkey proof the authenticator's flags as signed, and never raises either. |
 | What the proof is made over | In openChart's version 1, a passkey or a security key (ruling 208), under openWallet's draft profile `wallet-webauthn-proof` (change `add-webauthn-proof-profile`): the authenticator signs its authenticator data followed by the SHA-256 of the client data, and the client data's challenge is derived from the proof's unsigned binding fields, so the proof binds what the ratified profile binds and also the relying party, by its relying-party identifier hash and origin. openWallet's ratified possession-only profile `wallet-challenge-proof` stays as ratified: profile constant `openwallet.challenge-proof.v0`; Ed25519 over the domain separator `openWallet.challenge-proof.v0` and a NUL byte, then the RFC 8785 canonical form of every unsigned proof field. In either profile the `challenge_digest` is `sha256:` and the SHA-256 of the relying party's RFC 8785 canonical statement, which carries the relying party's single-use challenge. For openChart that statement is the sign-off statement, and the digest is its `statement_sha256`. The challenge reference is an opaque random value, 32 bytes drawn at random by the relying party's own server and used once, in unpadded base64url, that carries no meaning. The proof also binds the wallet, the key, the subject, the custody reference, the binding and its revision. openSig is given the digest and the challenge reference, never the statement. |
 | Who owns consent | The relying party. A sign-off is consent to an exact request, and openWallet's ratified profile does "not assert MFA, human presence, explicit human consent, workload composition, delegation or domain permission". The relying party evidences what the signer was shown, refusing a signature over a digest that differs from it; re-authentication at signing; and, through the custody it accepts, per-use authorization at the key. Neither the proof nor the attestation is consent. |
@@ -1237,12 +1267,12 @@ nothing more.
 |---|---|---|
 | PP-1 | The profile is a sibling capability `openxwallet-practitioner-profile` over the core; its holder-class rule is a record rule, and a relying domain may also refuse on its held record's class; no agent carries a verification. | D1 |
 | PP-2 | The fields of a licence verification, including the keys it names; no clinical scope; the licence identifier in clear; a random verification id; one verification per licence; the closed status set. **RULED in part (213):** the reliance bound, until the licence expires and at most 12 months; measuring the twelve months from the check is PROPOSED. | D2 |
-| PP-3 | A verifier is a holder with its own wallet; Ed25519 over RFC 8785 with signing domains of their own; a recorded proof of possession from each key it names, made in the key's own profile (for a passkey or security key, `wallet-webauthn-proof`, obtained by the verifier itself, as `add-webauthn-proof-profile` recommends, by a related-origin ceremony), within the session in which the verifier identified the licensee by its own means, independently of the deployment, never relayed; for a passkey proof, the relying-party identifier, origin, credential identifier, backup flags and the verifier's statement of an identified session recorded with it; which the relying domain checks, its wallet reference included, by the proof profile's check of a recorded proof; opaque verifier references in the recorded proofs; identity proofing is the verifier's record; the standard does not narrow who may verify. | D3 |
+| PP-3 | A verifier is a holder with its own wallet; Ed25519 over RFC 8785 with signing domains of their own; a recorded proof of possession from each key it names, made in the key's own profile (for a passkey or security key, `wallet-webauthn-proof`, obtained by the verifier itself, as `add-webauthn-proof-profile` recommends, by a related-origin ceremony), in a session the verifier began with the practitioner's client, which the deployment neither began nor can join, in which it identified the licensee by its own means, with the practitioner's declaration about the client recorded, never relayed; for a passkey proof, `rp_id`, `origin`, `credential_id`, `backup_eligible`, `backup_state` and `identified_session` recorded with it, the algorithm being the proof's `alg`; a missing session statement refused as `identified_session_missing`; which the relying domain checks, its wallet reference included, by the proof profile's check of a recorded proof; opaque verifier references in the recorded proofs; identity proofing is the verifier's record; the standard does not narrow who may verify. | D3 |
 | PP-4 | Held verifier keys are records of the relying domain, with a recorded provenance, `release` or `two_person` (a record no administrator acting through the domain can supply alone, which whoever runs the deployment can still alter), the licensing authorities each is held for and relied on for alone, a state and a compromise time; only a `release` key supports D8's aim, each reliance records its key's provenance, and a relying domain may admit `release` keys only (recommended for openChart version 1); each key arrives with its verifier's newest revocation list; reliances since a compromise are raised. **RULED (210):** the verifier must be independent; how the profile lets a domain hold that, and what it cannot enforce, is PROPOSED. | D4 |
-| PP-5 | Checking from six held things: the supersession index among them, which the domain keeps, derives from every verification it receives, and never prunes, except that an entry from a verifier key later recorded as compromised stops applying and is kept for audit; and every revocation received, kept as permanent, with verifiers keeping each revocation in every list until the revoked verification's bound; the list used, its age and the verifier key's provenance recorded on every reliance, flagged and raised past the freshness bound; the worst case; no list rollback; `verifier_not_held_for_authority`; `signature_invalid` covers the recorded proofs and their key and wallet references; `not_checkable` only when the deployment holds nothing to check with, cured by the deployment. **RULED (212):** freshness never blocks, the newest list held is used and its age recorded; the 72 hours and the alert are openChart's. | D5 |
+| PP-5 | Checking from six held things: the supersession index among them, which the domain keeps, derives from every verification it receives, and never prunes, except that an entry from a verifier key later recorded as compromised stops applying and is kept for audit; and every revocation received, kept as permanent, with verifiers keeping each revocation in every list until the revoked verification's bound; the list used, its age and the verifier key's provenance recorded on every reliance, flagged and raised past the freshness bound; the worst case; no list rollback; `verifier_not_held_for_authority`; `signature_invalid` covers the recorded proofs and their key and wallet references, and `identified_session_missing` a passkey proof recorded without the verifier's session statement; `not_checkable` only when the deployment holds nothing to check with, cured by the deployment. **RULED (212):** freshness never blocks, the newest list held is used and its age recorded; the 72 hours and the alert are openChart's. | D5 |
 | PP-6 | How a verification ends; the worst case; what the practitioner must do and how often; key retirement per key; the closed reason classes; `issued_in_error` and `verifier_withdrawn` raised to a human; a raised item never goes to the signer alone, and the relying domain names a second recipient. **RULED (213):** the verifier re-checks the board's record monthly and revokes on a change, stated as a duty; the practitioner renews once a year at most. | D6 |
 | PP-7 | A verification is never identity or authority; the three-leg match, leg 3 needing the domain's own record of authority, jurisdiction, licence identifier and class. | D7 |
-| PP-8 | Reading ruling 214 for this profile: forgery as a sign-off without the practitioner's key; the signer reported from the verification's licence, never the account; the aim holding only for verifier keys that ship with a release, and only where the verifier identified the licensee itself in the session in which each named key proved possession; limits beyond the ruling's words (hiding records, withholding revocation lists, altered software, refusing service, content substitution, a relayed proof, a synced passkey's account); what altering the supersession index or a kept revocation can and cannot do; per-key binding; the held wallet record only from the practitioner; one binding per bound key. **RULED (214):** the aim and its two named limits, in its words. | D8 |
+| PP-8 | Reading ruling 214 for this profile: forgery as a sign-off without the practitioner's key; the signer reported from the verification's licence, never the account; the aim holding only for verifier keys that ship with a release, and only where the verifier identified the licensee itself in a session it began with the practitioner's client, which the deployment neither began nor can join; limits beyond the ruling's words (hiding records, withholding revocation lists, altered software, refusing service, content substitution, a relayed proof, a client, device or provider the practice administers, a synced passkey's account among them); what altering the supersession index or a kept revocation can and cannot do; per-key binding; the held wallet record only from the practitioner; one binding per bound key. **RULED (214):** the aim and its two named limits, in its words. | D8 |
 | PP-9 | A sign-off is a proof over the statement digest under `wallet-webauthn-proof`, whose challenge binds what the ratified profile binds and the relying domain; the custody reference form and what a mismatch compares; the relying domain states which custody it accepts, and may ask for per-use authorization on the device as its own acceptance rule, leaving the registry's statement as ratified; the user-verification flag shows on-authenticator verification as far as the authenticator is trusted; a per-use key forces the wallet's own custody; consent owned by the relying domain. **RULED (208):** a passkey or security key, and the profile drafted now; **(209)** openChart's acceptance of synced passkeys on enrolled devices and of security keys. | D9 |
 | PP-10 | The wording of the MODIFIED requirement: the exception named by the act, covering the sign-off and the binding it needs; no wallet of the domain's own; ruling 183 as a clarification, including "on whose behalf". | D10 |
 | PP-11 | Whichever of this change and `add-trust-anchors-and-machine-holders` archives second regenerates at the union, checked sentence by sentence and scenario by scenario, ignoring line breaks; no sentence widens the exception. | D11 |
@@ -1280,10 +1310,11 @@ nothing more.
 - **T5. The operator of the deployment.** Ruling 214 holds against forgery, not against
   deleting records or back-dating. Beyond its words, it holds only for verifier keys
   that ship with a release and where the verifier identified the licensee itself in
-  the session in which each named key proved possession, and not against hiding
-  records, withholding revocation lists, rebinding an account, substituting the
-  statement a gesture signs, a relayed proof, or whoever controls a synced passkey's
-  account (D8; Open question 21).
+  a session it began with the practitioner's client, which the deployment neither
+  began nor can join, and not against hiding records, withholding revocation
+  lists, rebinding an account, substituting the statement a gesture signs, a
+  relayed proof, or whoever administers the practitioner's client, device or
+  passkey provider (D8; Open question 21).
 - **T6. A class-named exception in a class-agnostic core.** The core's scenario says "no
   requirement in this capability assumes a particular class", and the exception names
   the practitioner class. It imposes nothing on any holder; it widens what a consuming
@@ -1395,9 +1426,12 @@ keeps its number and says what stays PROPOSED. Questions 20 and 21 are new.
     record, with its key shipped in openChart. This change drafts nothing for it.
     Recommendation: the owner commissions its specification as its own change, in the
     repository he chooses for it, stating how it identifies each licensee by its own
-    means, independently of the practice's deployment, in the session in which each
-    key proves possession, how it obtains a passkey's proof of possession in that
-    session (`add-webauthn-proof-profile`), never relayed, how it keeps its
+    means, independently of the practice's deployment, in a session it begins with
+    the practitioner's client itself, which the deployment neither began nor can
+    join, and in which each key proves possession; how it obtains a passkey's proof
+    of possession in that session (`add-webauthn-proof-profile`), never relayed; how
+    it records the practitioner's declaration that the client is theirs and is not
+    administered by the practice; how it keeps its
     signing key, how it re-checks each licence monthly and publishes cumulative
     revocation lists, and who may operate it; until then, ruling 152 keeps every
     decision off.
@@ -1414,11 +1448,12 @@ keeps its number and says what stays PROPOSED. Questions 20 and 21 are new.
 
 ## Status
 
-`Status: proposed`. Five reviews have run: an independent review of the first draft at
+`Status: proposed`. Six reviews have run: an independent review of the first draft at
 `8aa0364`, a confirmation review of the revision at `169120e`, a final check of
 `7442ea5` together with an automated review, a confirmation of `4cfef0a` with a
-second automated review, and an independent review of `484dd16` together with the
-first draft of `add-webauthn-proof-profile`; this revision answers all five and
-records rulings 208 to 214, which are rulings and not ratification. `tasks.md` 1.1 still schedules an adversarial reviewer
+second automated review, an independent review of `484dd16` together with the
+first draft of `add-webauthn-proof-profile`, and a confirmation of `834db41`; this
+revision answers all six and records rulings 208 to 214, which are rulings and not
+ratification. `tasks.md` 1.1 still schedules an adversarial reviewer
 over this revision before ratification. Ratification is pending, by openWallet's operator
 authority, Brett Heap.
