@@ -69,11 +69,15 @@ be read as a licence verification, nor a licence verification as one of them. A
 verifier is a holder with a wallet of its own, and the key it signs with is a
 key that wallet declares. Before it issues a verification, the verifier SHALL
 obtain a proof of possession from each key the verification will name, over a
-challenge the verifier issued for that purpose, and the verification SHALL
+challenge the verifier issued for that purpose, in the proof profile that key
+makes proofs in; for a passkey or a security key that profile is
+`wallet-webauthn-proof`, and change `add-webauthn-proof-profile` states how a
+verifier observes the proof when the key is scoped to another party's relying
+party identifier. The verification SHALL
 record, for each such key, the key's reference, its fingerprint, its public
 key, the proof itself and when it was made. A relying domain SHALL check each
-recorded proof whenever it checks the verification: that the proof's signature
-verifies under the recorded public key, that the proof names the recorded key
+recorded proof whenever it checks the verification: that the proof verifies,
+under its own profile, under the recorded public key, that the proof names the recorded key
 reference, that its wallet reference is the wallet the verification is bound
 to, and that the recorded fingerprint is that public key's. It cannot
 check the verifier's challenge or the verifier's binding of the key, which are
@@ -140,8 +144,9 @@ record, and the verification SHALL reference it.
 openWallet SHALL require a relying domain to hold each verifier key it relies
 on as a record of its own, never as a key the wallet's holder supplies and
 never learned from the verification being checked. Each held verifier key SHALL
-carry the verifier's identity, the public key and its fingerprint, its state,
-and its provenance, recorded from a closed set of two: it was delivered with a
+carry the verifier's identity, the public key and its fingerprint, the
+licensing authorities it is held for, its state, and its provenance, recorded
+from a closed set of two: it was delivered with a
 release of the relying system, which the record names; or it was added by two
 named people, with the addition announced to the domain's declared audience, a
 record no administrator acting through the domain can supply alone. The two
@@ -154,8 +159,9 @@ SHALL record the provenance of the verifier key it rested on, and a reliance on
 a key added by two people SHALL be recorded as such. A verifier key
 SHALL arrive together with that verifier's newest revocation list, so that the
 domain can check the verifier's verifications from the moment it holds the key.
-A held verifier key that is compromised SHALL record the time from which it is
-treated as compromised. A relying domain MAY require that the verifier is a
+A held verifier key SHALL be relied on only for verifications that name a
+licensing authority it is held for. A held verifier key that is compromised
+SHALL record the time from which it is treated as compromised. A relying domain MAY require that the verifier is a
 holder other than itself, and MAY admit only verifier keys delivered with a
 release; a verification names its verifier so that it can.
 
@@ -181,6 +187,13 @@ release; a verification names its verifier so that it can.
 - AND a check run on a copy of the records with only the verifier keys
   delivered with releases of the relying system does not accept it
 
+#### Scenario: a verifier key held for one authority is not relied on for another
+
+- WHEN a verification is correctly signed by a verifier key the relying domain
+  holds for one licensing authority, and names a different licensing authority
+- THEN the domain does not rely on it
+- AND it refuses it as signed by a key not held for that authority
+
 #### Scenario: a compromised verifier key
 
 - WHEN a held verifier key is recorded as compromised from a given time
@@ -193,9 +206,9 @@ release; a verification names its verifier so that it can.
 
 openWallet SHALL let a relying domain decide whether to rely on a licence
 verification from what it already holds: the verification, as the wallet's
-holder presented it; the held verifier key; the newest revocation list from
-that verifier that the domain holds; the held record of the bound wallet; the
-supersession index the domain keeps; and its own clock. Supersession needs no
+holder presented it; the held verifier key; every revocation it has received
+from that verifier, the newest list included; the held record of the bound
+wallet; the supersession index the domain keeps; and its own clock. Supersession needs no
 revocation, so nothing else the domain holds shows that a later verification
 replaced the one presented. The relying domain SHALL therefore keep every
 licence verification it receives, and SHALL keep a supersession index of them:
@@ -205,7 +218,9 @@ its signature verifies under a held verifier key and it is from the same
 verifier, for the same licence and wallet, as the one it supersedes. The index
 SHALL be what the kept verifications say they supersede, so that it can be
 rebuilt from them, and an entry SHALL NEVER be removed, even when the later
-verification ends. Deciding SHALL NOT contact the verifier, the licensing
+verification ends. An entry made by a verification signed with a verifier key
+that is later recorded as compromised SHALL stop applying from the moment the
+compromise is recorded, and SHALL be kept for audit. Deciding SHALL NOT contact the verifier, the licensing
 authority, a directory, the wallet or its holder's device, and SHALL NOT wait
 for any of them. The domain fetches each verifier's revocation list when it
 can. At reliance it SHALL use the newest list it holds, SHALL NOT wait for a
@@ -220,13 +235,18 @@ was checked. Every item this profile raises to a human SHALL reach a human
 other than the practitioner whose sign-off it concerns: where that practitioner
 is the one who would receive it, the relying domain SHALL name a second
 recipient, and SHALL NEVER raise it to the signer alone. A held revocation list
-SHALL NEVER be replaced by one with a lower sequence. A relying domain SHALL
-refuse to rely on a verification that is
+SHALL NEVER be replaced by one with a lower sequence. A relying domain SHALL keep every revocation it has received,
+and SHALL treat each as permanent: a later list that omits a revocation, whatever
+its sequence, SHALL NOT restore the verification, and an omission before the
+revoked verification's reliance bound SHALL be raised to a human as a fault in
+the verifier's list. A relying domain SHALL refuse to rely on a verification
+that is
 past its reliance bound; is superseded by a later verification it holds of the
 same licence, for the same wallet, from the same verifier; is revoked in the
 newest list it holds; is bound to another wallet, or does not name the key that
-made the sign-off; is signed by a verifier key it does not hold, or holds as
-suspended, revoked or compromised; or whose signature, or any proof of
+made the sign-off; is signed by a verifier key it does not hold, holds as
+suspended, revoked or compromised, or holds for licensing authorities other than
+the one the verification names; or whose signature, or any proof of
 possession it records, does not verify. A verification is not checkable only
 where the domain holds nothing to check it with: no revocation list at all from
 its verifier, or no record of the bound wallet. That is cured by the deployment
@@ -261,6 +281,23 @@ obtaining what it lacks, never by the signer.
   relying domain would raise it to
 - THEN it also reaches the second recipient the relying domain names
 - AND it is never raised to the signer alone
+
+#### Scenario: a newer list that omits a revocation restores nothing
+
+- WHEN a relying domain has received a list revoking a verification, and then
+  receives a list with a higher sequence that does not carry that revocation,
+  before the revoked verification's reliance bound
+- THEN the verification stays revoked and is not relied on
+- AND the omission is raised to a human as a fault in the verifier's list
+
+#### Scenario: a compromised verifier key's supersession stops applying
+
+- WHEN a verification superseded another, and the verifier key that signed the
+  later one is then recorded as compromised
+- THEN the supersession index entry the later one made stops applying from that
+  record, and is kept for audit
+- AND the earlier verification is judged again on everything else the domain
+  holds
 
 #### Scenario: a revocation list is never rolled back
 
@@ -311,11 +348,13 @@ licence, for the same wallet, from the same verifier supersedes it; when its
 verifier revokes it; when the bound wallet is revoked, and for as long as it is
 suspended; and, from then on, when the relying domain no longer holds the
 verifier's key as active. A verifier SHALL re-check the licence against its
-source on its own schedule, SHALL revoke a verification it learns no longer
+source every month, SHALL revoke a verification it learns no longer
 holds, because the licence's status changed, because it was issued in error,
 because the binding to the wallet no longer holds or because the verifier
 withdraws it, and SHALL publish each revocation in a signed revocation list
-with a rising sequence that names a reason class for each entry. A revoked
+with a rising sequence that names a reason class for each entry. Every list it
+publishes SHALL carry every revocation it has published whose revoked
+verification's reliance bound has not yet passed. A revoked
 verification SHALL NEVER return to force: re-verification is a new
 verification that names the one it supersedes. As every revocation in this
 family is, revocation SHALL be checked at the moment of reliance, never trusted
@@ -326,6 +365,13 @@ was in force, but a relying domain that receives a revocation whose reason
 class says the verification was never true, or that the verifier withdrew it,
 SHALL raise every reliance it affects to the responsible human through its
 declared escalation path.
+
+#### Scenario: the verifier re-checks every month
+
+- WHEN a month has passed since a verifier last re-checked a licence it has a
+  verification of in force
+- THEN the verifier re-checks that licence against its source
+- AND it revokes the verification if what it finds no longer supports it
 
 #### Scenario: no grace period after the reliance bound
 
@@ -381,7 +427,12 @@ licensing authority, the jurisdiction, the licence identifier and the licence
 class, so that a relying domain that keeps its own record of the practitioner's
 licence, holding those same four facts, can compare the two; neither replaces
 the other, and what follows from a difference is the domain's to decide. A
-relying domain MAY also refuse a verification whose bound wallet's held record
+sign-off evidences which licence holder's key signed, as the verification relied
+on names that licence; the account the relying domain shows the decision under
+is the domain's own record. A relying domain SHALL therefore report a sign-off's
+signer from the licence the verification relied on names, never from the account
+alone, and SHALL raise a difference between that licence and its own record of
+the account's licence. A relying domain MAY also refuse a verification whose bound wallet's held record
 declares a holder class other than practitioner.
 
 #### Scenario: a verification is never an identifier
@@ -397,6 +448,14 @@ declares a holder class other than practitioner.
 - THEN no grant, scope or authority is conferred by it
 - AND which decisions its licence class may make is the relying domain's own
   configuration
+
+#### Scenario: the signer is reported from the verification, not the account
+
+- WHEN a sign-off is shown under one practitioner's account, and the verification
+  it relied on names another practitioner's licence
+- THEN the relying domain reports the signer as the licence holder the
+  verification names
+- AND it raises the difference with its own record of that account's licence
 
 #### Scenario: the domain's own licence record is compared, not replaced
 
@@ -444,10 +503,14 @@ supported only by a verification that names its fingerprint.
 ### Requirement: A practitioner's sign-off is a proof of possession over the relying domain's statement
 
 openWallet SHALL provide, for a practitioner's sign-off of a medical decision,
-a proof of possession made under the possession-only profile ratified as
-`wallet-challenge-proof`, whose challenge digest is the digest of the statement
-the relying domain asks the practitioner to sign off, which carries the
-domain's single-use challenge. The proof's binding SHALL name the wallet, the
+a proof of possession made under a proof profile of this family whose challenge
+digest is the digest of the statement the relying domain asks the practitioner
+to sign off, which carries the domain's single-use challenge: the profile for
+passkeys and security keys, `wallet-webauthn-proof`, drafted in change
+`add-webauthn-proof-profile`, which also binds the relying domain by its
+relying-party identifier and origin, or the ratified `wallet-challenge-proof`,
+which stays as ratified. A relying domain SHALL state which of them it accepts
+for a sign-off. The proof's binding SHALL name the wallet, the
 key that signed, and a custody reference of the form
 `openxwallet-custody:<registry_version>:<model>`, which SHALL equal the custody
 the held wallet record declares for that key under the closed custody registry.
@@ -457,16 +520,17 @@ service outside it. What the signing key's custody evidences is the closed
 custody registry's statement, which this profile neither restates nor narrows:
 a key whose declared custody evidences the HOLDER, which today is
 `isolated_per_use_authorized` alone, evidences that its holder acted, and a
-proof from any other key evidences only the holder's environment. Before it
-accepts a practitioner's sign-off of a medical decision, a relying domain SHALL
-ask more of the signing key than its declared custody: that each use is
-authorized by the practitioner on the device that holds the key, and not by a
-code typed into the computer that asks for the signature, nor by an approval or
-a custodian away from that device. That is the relying domain's acceptance rule
-for a sign-off, not a change to what the registry says custody evidences. No
-record declares it and nothing checks it yet: until openWallet defines a record
-of the evidence on which a key's custody is accepted, or a proof profile that
-reports how each use was authorized, no proof or declaration shows it. The
+proof from any other key evidences only the holder's environment. A relying
+domain SHALL state which custody it accepts for a practitioner's sign-off of a
+medical decision, and MAY ask more of the signing key than its declared custody,
+such as that each use is authorized by the practitioner on the device that holds
+the key, and not by a code typed into the computer that asks for the signature,
+nor by an approval or a custodian away from that device. What it asks is its own
+acceptance rule, not a change to what the registry says custody evidences. Under
+`wallet-webauthn-proof`, the user-verification flag the authenticator sets on
+each use shows that verification happened on the authenticator, as far as the
+authenticator is trusted; under the ratified profile, no proof or declaration
+shows how a use was authorized. The
 proof SHALL NOT state anything about the statement's content, the
 practitioner's licence or their authority. It SHALL NOT be presented as the
 practitioner's consent to the statement: what the signer was shown, their
@@ -499,9 +563,9 @@ are the relying domain's to evidence and decide.
 
 #### Scenario: the sign-off acceptance rule leaves the registry as it is
 
-- WHEN a relying domain knows that a key declaring `isolated_per_use_authorized`
-  is authorized for each use by an approval or a custodian away from the device
-  that holds it
+- WHEN a relying domain whose acceptance rule asks for authorization on the
+  device knows that a key declaring `isolated_per_use_authorized` is authorized
+  for each use by an approval or a custodian away from the device that holds it
 - THEN the domain does not accept a practitioner's sign-off made with that key
 - AND the key's declared custody, and what the registry says that custody
   evidences, are unchanged

@@ -18,11 +18,13 @@ ruling first.
       draft `add-wallet-bound-attestation`. The verdicts go into `design.md` as
       returned, each with its disposition. Three reviews have already run: an
       independent review of the first draft at `8aa0364`, a confirmation review
-      of the revision at `169120e`, and a final check of `7442ea5` with an
-      automated review.
-- [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the nineteen open questions in
-      `design.md` ("Open questions for ratification"), by number, the first five
-      first, and dispose of the design calls PP-1 to PP-16.
+      of the revision at `169120e`, a final check of `7442ea5` with an
+      automated review, and a confirmation of `4cfef0a` with a second automated
+      review.
+- [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the open questions still open in
+      `design.md` ("Open questions for ratification"; rulings 208 to 214 closed
+      1 to 4 and 9, and each closed one lists what stays PROPOSED), and dispose of
+      the design calls PP-1 to PP-16.
 - [ ] 1.3 **[OPERATOR] [GOVERNANCE]** Ratify or return. Brett Heap (openWallet
       operator authority).
 - [ ] 1.4 On ratification: `Status: ratified` and a `Ratified:` line carrying the
@@ -47,7 +49,9 @@ ruling first.
 - [ ] 2.3 NEW `openxwallet-licence-revocation-list.schema.yaml`, kind
       `xfactory_wallet_licence_revocation_list`: the verifier, a sequence that
       only rises, `issued_at`, the time by which the next list is published, and
-      entries of verification id, revocation time and reason class (D6).
+      entries of verification id, revocation time and reason class (D6). Every
+      list carries every revocation whose revoked verification's reliance bound
+      has not passed (D5).
 - [ ] 2.4 NEW `openxwallet-held-verifier-key.schema.yaml`, kind
       `xfactory_wallet_held_verifier_key`: the verifier, the key and its
       fingerprint, the licensing authorities it is held for, provenance
@@ -91,7 +95,9 @@ ruling first.
       its age, any freshness flag and the verifier key's provenance), `refused`
       or `not_checkable` with its reason, from the six held inputs of D5 alone;
       that verifies the verifier's signature and each recorded proof of
-      possession, with its key and wallet references (D3); that makes no network
+      possession, in its own profile, with its key and wallet references (D3);
+      that refuses a verification naming a licensing authority its verifier key
+      is not held for (`verifier_not_held_for_authority`); that makes no network
       call and never waits; and that refuses to replace a held list with a lower
       sequence.
 - [ ] 4.3 The supersession index of D5: every verification the domain receives
@@ -102,7 +108,13 @@ ruling first.
       received the later one returns `superseded`, though its verifier key, the
       newest list, the wallet record and its reliance bound are unchanged; it
       still returns `superseded` after the later one is revoked or passes its
-      bound; and a later verification that does not verify enters nothing.
+      bound; a later verification that does not verify enters nothing; and an
+      entry made by a verification whose verifier key is later recorded as
+      compromised stops applying from that record and is kept for audit.
+- [ ] 4.4 Kept revocations (D5): every revocation the domain receives is kept and
+      is permanent. Confirmation: a list with a higher sequence that omits a
+      revocation, before the revoked verification's bound, restores nothing,
+      and the omission is raised as a fault in the verifier's list.
 
 ## 5. Release (assembly root)
 
