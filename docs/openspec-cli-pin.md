@@ -1,3 +1,35 @@
+# Wallet #73 supplied-artifact correction (2026-11-16)
+
+Status: prepared; provider #1333 main admission pending.
+
+Provider candidate: opensoft/openXfactory@2bb3d5fa08c9922dcfd746bb269705d5457ec20a.
+Hosted review of openWallet-spec #12 found that a cold npm cache could cause
+the earlier implementation to fetch the CLI again after authenticating its
+vendored tarball. The correction stages the exact authenticated byte snapshot
+inside the controlled private generation and seeds npm's content-addressed
+cache before unchanged locked installation. The same 80-package lock, mandatory
+SHA-512, corroborating checksum, operator/profile controls and script suppression
+remain in force. No active generation or historical artifact is replaced.
+
+All 191 provider pin tests pass, including real npm installation with an empty
+private cache and networking disabled. This spec copy passes four tests/six
+subtests, including forged-header refusal. The real pinned production CLI
+validated all seven OpenSpec items under --strict with npm networking disabled.
+Published consumer CI and provider admission remain pending. The original committed tarball is
+unchanged; the dependency-only network residual remains the existing contract.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 98bb953aef0fb990b301cd62bfda995b46a5e797346ca88cc180cc457cdd5aca | abdb1e460a8430a5ba5e3b15055b4eca6ed1de719d51cc1ddded88651a35be75 |
+| scripts/install-pinned-openspec-cli.py | 082d036c18e40e2794e495633680f62a71795115b250ecd38428e451419fb083 | 518fc06d7f052ec29e25780c9028c8bdbbd4259d66562c75ab7db61937823e09 |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | d7181832f4f2c930e8a348a7ad4d771f35733d21bc5144aabea7ed208ad4e9b4 |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
+Python copies carry exactly three declared comments after the provider shebang;
+YAML carries those three comments before its provider body; JSON is verbatim.
+Consumer checks also reject executable or malformed replacement headers.
+Earlier records retain their original measurements and are historical evidence.
+
 # Wallet #73 checksum and trust-boundary maintenance (2026-11-16)
 
 Status: provider admitted; neutral root and consumer acceptance pending.
