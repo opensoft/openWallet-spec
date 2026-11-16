@@ -92,7 +92,9 @@ capability `openxwallet`. No change to `openxwallet-agent-profile`.
      expiry or twelve months after the check; no other class carries one
      (`design.md` D2);
    - a verification is issued by a named verifier, in a signing domain of its
-     own, over a recorded proof of possession from each key it names (D3);
+     own, over a recorded proof of possession from each key it names, obtained
+     within the session in which the verifier identified the licensee itself and
+     never relayed, recorded with what checking it needs (D3);
    - a relying domain holds verifier keys as records of its own, with a
      recorded provenance (a release of the relying system, or two named
      people), each delivered with its verifier's newest revocation list, and a
@@ -131,7 +133,8 @@ capability `openxwallet`. No change to `openxwallet-agent-profile`.
 - **Proposed, a separate draft: `add-webauthn-proof-profile`** (capability
   `wallet-webauthn-proof`), drafted under ruling 208. A practitioner's sign-off
   is made in it, with a passkey or a security key, and it says how a verifier
-  observes such a key's proof of possession (D3, D9).
+  obtains such a key's proof of possession and how a relying domain checks the
+  recorded proof (D3, D9).
 - **Proposed, not ratified: `add-trust-anchors-and-machine-holders`**, with its
   open amendment in pull request #6. It MODIFIES the same requirement this
   change modifies; whichever archives second regenerates at the union (D11).

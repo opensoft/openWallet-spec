@@ -73,16 +73,24 @@ challenge the verifier issued for that purpose, in the proof profile that key
 makes proofs in; for a passkey or a security key that profile is
 `wallet-webauthn-proof`, and change `add-webauthn-proof-profile` states how a
 verifier observes the proof when the key is scoped to another party's relying
-party identifier. The verification SHALL
-record, for each such key, the key's reference, its fingerprint, its public
-key, the proof itself and when it was made. A relying domain SHALL check each
-recorded proof whenever it checks the verification: that the proof verifies,
-under its own profile, under the recorded public key, that the proof names the recorded key
-reference, that its wallet reference is the wallet the verification is bound
-to, and that the recorded fingerprint is that public key's. It cannot
-check the verifier's challenge or the verifier's binding of the key, which are
-the verifier's own, and SHALL NOT treat a recorded proof as a binding of its
-own. The recorded proofs carry the verifier's own subject and binding
+party identifier. The verifier SHALL obtain each such proof within the session
+in which it identified the licensee by its own means, independently of any
+relying domain, and SHALL NOT name a key on a proof relayed to it through a
+relying domain. The verification SHALL record, for each such key, the key's
+reference, its fingerprint, its public key, the proof itself and when it was
+made, and, for a proof under `wallet-webauthn-proof`, the relying-party
+identifier, the origin at which the verifier obtained it, the credential
+identifier, the backup flags the proof carries, and the verifier's statement
+that it obtained the proof within the session in which it identified the
+licensee. A relying domain SHALL check each recorded proof whenever it checks
+the verification: that the proof verifies, under its own profile, under the
+recorded public key, and, for a proof under `wallet-webauthn-proof`, passes that
+profile's check of a recorded proof; that the proof names the recorded key
+reference; that its wallet reference is the wallet the verification is bound
+to; and that the recorded fingerprint is that public key's. It cannot check the
+verifier's challenge, its identification of the licensee or its binding of the
+key, which are the verifier's own, and SHALL NOT treat a recorded proof as a
+binding of its own. The recorded proofs carry the verifier's own subject and binding
 references to every relying domain that holds the verification, so a verifier
 SHALL use opaque references there that name no person. A verification covers
 exactly the keys it names: a key the wallet declares later, or that a held copy
@@ -116,6 +124,23 @@ record, and the verification SHALL reference it.
   fingerprint is the one named
 - AND a verification naming a key with no recorded proof is a validation failure
 
+#### Scenario: a key is named only on a proof made in the verifier's identified session
+
+- WHEN a verifier holds a proof of possession from a key that reached it through
+  a relying domain, or outside a session in which it identified the licensee by
+  its own means
+- THEN it does not name that key in a verification
+
+#### Scenario: a recorded passkey proof is checked with what is recorded with it
+
+- WHEN a relying domain checks a verification whose recorded proof is under
+  `wallet-webauthn-proof`
+- THEN it checks the proof from the relying-party identifier, origin, credential
+  identifier and backup flags recorded with it, as `add-webauthn-proof-profile`
+  defines the check of a recorded proof
+- AND a recorded passkey proof without the verifier's statement of an identified
+  session is refused as a proof that does not verify
+
 #### Scenario: the relying domain checks each recorded proof
 
 - WHEN a relying domain checks a licence verification one of whose recorded
@@ -145,7 +170,8 @@ openWallet SHALL require a relying domain to hold each verifier key it relies
 on as a record of its own, never as a key the wallet's holder supplies and
 never learned from the verification being checked. Each held verifier key SHALL
 carry the verifier's identity, the public key and its fingerprint, the
-licensing authorities it is held for, its state, and its provenance, recorded
+licensing authorities it is held for (`held_for`), its state, and its
+provenance, recorded
 from a closed set of two: it was delivered with a
 release of the relying system, which the record names; or it was added by two
 named people, with the addition announced to the domain's declared audience, a
@@ -160,7 +186,8 @@ a key added by two people SHALL be recorded as such. A verifier key
 SHALL arrive together with that verifier's newest revocation list, so that the
 domain can check the verifier's verifications from the moment it holds the key.
 A held verifier key SHALL be relied on only for verifications that name a
-licensing authority it is held for. A held verifier key that is compromised
+licensing authority it is held for, and a verification naming another SHALL be
+refused as `verifier_not_held_for_authority`. A held verifier key that is compromised
 SHALL record the time from which it is treated as compromised. A relying domain MAY require that the verifier is a
 holder other than itself, and MAY admit only verifier keys delivered with a
 release; a verification names its verifier so that it can.
@@ -192,7 +219,7 @@ release; a verification names its verifier so that it can.
 - WHEN a verification is correctly signed by a verifier key the relying domain
   holds for one licensing authority, and names a different licensing authority
 - THEN the domain does not rely on it
-- AND it refuses it as signed by a key not held for that authority
+- AND it refuses it as `verifier_not_held_for_authority`
 
 #### Scenario: a compromised verifier key
 
@@ -242,12 +269,12 @@ revoked verification's reliance bound SHALL be raised to a human as a fault in
 the verifier's list. A relying domain SHALL refuse to rely on a verification
 that is
 past its reliance bound; is superseded by a later verification it holds of the
-same licence, for the same wallet, from the same verifier; is revoked in the
-newest list it holds; is bound to another wallet, or does not name the key that
+same licence, for the same wallet, from the same verifier; is revoked by any
+revocation it has received; is bound to another wallet, or does not name the key that
 made the sign-off; is signed by a verifier key it does not hold, holds as
 suspended, revoked or compromised, or holds for licensing authorities other than
-the one the verification names; or whose signature, or any proof of
-possession it records, does not verify. A verification is not checkable only
+the one the verification names; or whose signature does not verify, or any
+proof of possession it records fails its check. A verification is not checkable only
 where the domain holds nothing to check it with: no revocation list at all from
 its verifier, or no record of the bound wallet. That is cured by the deployment
 obtaining what it lacks, never by the signer.

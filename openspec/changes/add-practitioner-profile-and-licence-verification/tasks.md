@@ -14,13 +14,14 @@ ruling first.
       `openxwallet-agent-profile`, the ratified and unarchived
       `add-challenge-proof-runtime` (with its ratification record) and
       `add-composition-drift-cascade`, the core contracts, the validator,
-      openChart-spec#5's sign-off (CA-04, AU-03, AU-07, EN-06) and openSig's
-      draft `add-wallet-bound-attestation`. The verdicts go into `design.md` as
-      returned, each with its disposition. Three reviews have already run: an
+      openChart-spec#5's sign-off (CA-04, AU-03, AU-07, EN-06), openSig's
+      draft `add-wallet-bound-attestation` and openWallet's draft
+      `add-webauthn-proof-profile`. The verdicts go into `design.md` as
+      returned, each with its disposition. Five reviews have already run: an
       independent review of the first draft at `8aa0364`, a confirmation review
       of the revision at `169120e`, a final check of `7442ea5` with an
-      automated review, and a confirmation of `4cfef0a` with a second automated
-      review.
+      automated review, a confirmation of `4cfef0a` with a second automated
+      review, and an independent review of `484dd16`.
 - [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the open questions still open in
       `design.md` ("Open questions for ratification"; rulings 208 to 214 closed
       1 to 4 and 9, and each closed one lists what stays PROPOSED), and dispose of
@@ -95,7 +96,10 @@ ruling first.
       its age, any freshness flag and the verifier key's provenance), `refused`
       or `not_checkable` with its reason, from the six held inputs of D5 alone;
       that verifies the verifier's signature and each recorded proof of
-      possession, in its own profile, with its key and wallet references (D3);
+      possession, in its own profile, with its key and wallet references, and a
+      passkey proof by `add-webauthn-proof-profile`'s check of a recorded proof,
+      refusing one recorded without the verifier's statement of an identified
+      session (D3);
       that refuses a verification naming a licensing authority its verifier key
       is not held for (`verifier_not_held_for_authority`); that makes no network
       call and never waits; and that refuses to replace a held list with a lower
