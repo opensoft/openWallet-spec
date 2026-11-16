@@ -86,3 +86,6 @@ OPENSPEC_TELEMETRY=0 python3 scripts/validate-openspec-cli-pin.py --all --no-cac
 
 See [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md). Both point at the
 shared OpenSpec/Speckit protocol, which runs from the assembly root.
+
+Source-validation maintenance: [feature 018 plan](specs/018-sonar-boundary-repairs/plan.md)
+and [common CLI provenance](docs/openspec-cli-pin.md).
