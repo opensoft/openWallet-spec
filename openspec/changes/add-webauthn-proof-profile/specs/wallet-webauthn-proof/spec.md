@@ -18,7 +18,10 @@ identifier with the trusted binding before it returns verified facts, so that a
 proof under this profile binds what the ratified `wallet-challenge-proof` binds
 and, in addition, the relying party by its relying-party identifier and origin.
 openWallet SHALL accept binding data only from a trusted server registry, and
-the binding SHALL be current, unrevoked and time valid. The proof SHALL NOT
+the binding SHALL be current, unrevoked and time valid, except as the fifth and
+ninth requirements state; a later verification of a proof already verified
+checks the binding as recorded then, and never claims it is still current. The
+proof SHALL NOT
 supply the public key, the relying-party identifier or the allowed origins,
 which come only from the binding. Whoever issues the challenge SHALL put in the
 statement behind `challenge_digest` a single-use challenge reference of 32 bytes
@@ -60,6 +63,13 @@ hashed.
 - WHEN a proof is verified after the validity of its binding has ended
 - THEN verification refuses
 
+#### Scenario: a later verification checks the binding as recorded
+
+- WHEN a proof that verified is verified again after its binding was revised,
+  for an audit
+- THEN it is checked against the binding as recorded when it first verified
+- AND the result never states that the binding is still current
+
 #### Scenario: the proof cannot supply its own key
 
 - WHEN a proof carries a public key, a relying-party identifier or an origin as a
@@ -84,16 +94,24 @@ data other than those named SHALL be tolerated and SHALL NOT be read, and
 extension outputs in the authenticator data SHALL be ignored. The registry SHALL
 keep the credential's signature counter and current backup state beside the
 binding, not in its revisioned record, so that updating them after a proof never
-revises the binding. The signature counter SHALL be compared once, when the
-proof is first verified, with the value kept beside the binding: where either is
-non-zero and the new value is not greater, the proof SHALL still verify and
-SHALL carry a flag that the counter did not increase, for the relying party to
-raise. That flag SHALL be recorded with the proof, and a later verification of
-the same proof SHALL report the recorded flag and SHALL NOT compare the counter
+revises the binding. The registry, which alone writes the counter, SHALL compare
+it once for each derived challenge, at the first verification of a proof with
+that challenge made against its own record, with the value kept beside the
+binding: where either is non-zero and the new value is not greater, the proof
+SHALL still verify and SHALL carry a flag that the counter did not increase, for
+the relying party to raise. That flag SHALL be recorded beside the binding, keyed
+by the derived challenge; a verifier holding only a read-only replica SHALL
+report the flag recorded for that challenge, having the registry make the first
+comparison where none is recorded yet; and a later verification of a proof with
+that challenge SHALL report the recorded flag and SHALL NOT compare the counter
 again. A verified proof SHALL carry the four flags as `user_present`,
 `user_verified`, `backup_eligible` and `backup_state`, and the counter flag as
-`sign_count_not_increasing`; a refusal SHALL carry its reason and whether the
-signature verified under the binding's public key.
+`sign_count_not_increasing`. A refusal SHALL carry its reason and
+`signature_verified`, true only where the signature verified under the binding's
+public key; the signature SHALL be checked whenever a binding was found and the
+proof decoded, whatever else failed, a signature not checked SHALL be reported as
+not verified, and a refusal reporting a verified signature SHALL NOT be presented
+as evidence of possession.
 
 #### Scenario: user verification is required on every use
 
@@ -123,7 +141,8 @@ signature verified under the binding's public key.
 
 - WHEN a proof whose signature verifies under the binding's public key is refused
   because its client data names an origin the binding does not allow
-- THEN the refusal reports that the signature verified, beside its reason
+- THEN the refusal reports `signature_verified` true, beside its reason
+- AND the refusal is not evidence of possession
 
 #### Scenario: client data with a repeated member
 
@@ -147,9 +166,10 @@ signature verified under the binding's public key.
 #### Scenario: a later verification does not compare the counter again
 
 - WHEN a proof that verified is verified again later, after the counter kept
-  beside the binding has moved on
-- THEN the later verification reports the flag recorded at the first, and raises
-  no new one
+  beside the binding has moved on, or is presented again with its ES256
+  signature rewritten
+- THEN the later verification reports the flag recorded for its derived
+  challenge, and raises no new one
 
 #### Scenario: an unknown client data member is ignored
 
@@ -213,9 +233,15 @@ relying-party identifier the credential is scoped to; the origins it allows; the
 credential identifier; the public key, in its raw form, and its algorithm; the
 backup eligibility and backup state the registration reported; whether user
 verification was performed at registration; the attestation format, the
-authenticator's model identifier where one was given, and the result of the
-domain's attestation policy, including that none was given; and the basis of the
-key's declared custody. The signature counter and the current backup state SHALL
+attestation object, the authenticator's model identifier where one was given, and
+the result of the domain's attestation policy, including that none was given;
+the basis of the key's declared custody; and the holder's declaration, made at
+registration, that the device and browser through which it registers the key, and
+through which it completes any verifier's session, are under its control and are
+not administered by the relying domain's operator, and, for a multi-device
+credential, that the account it syncs through is its own alone and is not
+administered by that operator. The binding SHALL NOT present that declaration as
+more than the holder's word. The signature counter and the current backup state SHALL
 be kept beside the binding, as the second requirement states. The wallet record
 SHALL declare the key with its reference, its fingerprint, its signature
 algorithm and its custody. A credential identifier already bound SHALL NOT be
@@ -246,21 +272,28 @@ binding.
 
 openWallet SHALL let a party other than the relying party a credential is scoped
 to, such as a licence verifier, accept a proof of possession from that
-credential only within a session in which that party identified the holder by
-its own means, independently of the relying party, and only from the holder's
-own client in that session: at an origin that party controls, which the relying
-party lists for that purpose as a related origin as Web Authentication Level 3
-defines one, or through a native client of that party's, under the credential's
-relying-party identifier. Such a proof shows only that a client holding a
-credential scoped to the relying party signed at that party's page, and the
-relying party can register a credential of its own, so a proof that reached that
-party through the relying party, or outside such a session, SHALL NOT be
-accepted. That party's binding has no registration behind it. It SHALL be made
-for that session only, SHALL allow that party's own origin only, SHALL record the
-relying-party identifier, the credential identifier as the holder presents it,
-and the backup eligibility and backup state the proof carries, and SHALL take the
-public key and algorithm from the key the holder's wallet record declares, so
-that a proof from any other credential does not verify under it. Every check of
+credential only in a session that party began with the holder's client itself,
+which the relying party neither began nor can join, in which that party
+identified the holder by its own means, independently of the relying party, and
+only from that client in that session: at an origin that party controls, which
+the relying party lists for that purpose as a related origin as Web
+Authentication Level 3 defines one, or through a native client of that party's,
+under the credential's relying-party identifier. Such a proof shows only that a
+client holding a credential scoped to the relying party signed at that party's
+page, and the relying party can register a credential of its own, so a proof
+that reached that party through the relying party, or outside such a session,
+SHALL NOT be accepted. That party SHALL record the holder's declaration that the
+client completing the session is under the holder's control and is not
+administered by the relying domain's operator. The profile cannot tell whether
+that client, or the authenticator it uses, is administered by the relying
+domain's operator, and SHALL NOT be read as telling it. That party's binding has
+no registration behind it. It SHALL be made for that session only, SHALL allow
+that party's own origin only, SHALL record the relying-party identifier, the
+credential identifier as the holder presents it, and the backup eligibility and
+backup state the proof carries, and SHALL take the public key and algorithm from
+the key the holder's wallet record declares, or from one the holder presents
+whose fingerprint the record declares, so that a proof from any other credential
+does not verify under it. Every check of
 the second requirement SHALL apply to it, except that backup eligibility is
 recorded from the proof rather than compared with a registration, and no
 signature counter is compared. A relying party SHALL NOT allow, for its own
@@ -279,6 +312,12 @@ purposes, an origin it listed for another party.
 - WHEN a proof reaches the verifier at its own origin, but not within a session
   in which the verifier identified the holder by its own means
 - THEN the verifier does not accept it
+
+#### Scenario: a session the relying party began or can join is not accepted
+
+- WHEN the verifier's session was begun through a link or token the relying party
+  handed the holder, or the relying party can join it
+- THEN the verifier accepts no proof of possession in it
 
 #### Scenario: a relayed proof is not accepted
 
@@ -307,10 +346,8 @@ roaming security key or a platform key, beyond what attestation shows; whether a
 authenticator reports backup eligibility truthfully, beyond what the relying
 domain's attestation policy trusts; or which account a multi-device credential
 syncs through, and who else controls or can recover that account. Where a
-multi-device credential is bound, the binding SHALL record the holder's
-declaration, made at registration, that the account it syncs through is the
-holder's alone and is not administered by the relying domain's operator, and
-SHALL NOT present that declaration as more than the holder's word. Whether a
+multi-device credential is bound, the holder's declaration the fourth
+requirement records covers the account it syncs through. Whether a
 device is enrolled is the relying domain's to evidence, and this profile does
 not evidence it.
 
@@ -341,7 +378,10 @@ closed set of two, recorded as `custody_basis`: `attested`, where the relying
 domain's attestation policy
 accepted attestation evidence that the authenticator keeps the key isolated and
 verifies its user, or `declared`, where it rests on the holder's word; so that no
-reading of the custody can omit either. A single-device credential whose
+reading of the custody can omit either. `attested` SHALL be read as the relying
+domain's own claim until a check verifies the attestation object the binding
+keeps against an attestation root that check trusts. A single-device credential
+whose
 authenticator keeps its private key and verifies its user on every use MAY
 declare `isolated_per_use_authorized`. No model of the registry, version 1,
 describes a multi-device credential, so a multi-device credential SHALL NOT be
@@ -391,15 +431,18 @@ openWallet SHALL let a relying domain check a proof under this profile that
 another party obtained and recorded, such as a licence verifier's proof of
 possession, from the proof and what is recorded with it: the relying-party
 identifier, the origin at which that party obtained it, the credential
-identifier, the public key and its algorithm, the backup eligibility and backup
-state the proof carries, and that party's statement that it obtained the proof
-within a session in which it identified the holder by its own means. The relying
-domain SHALL recompute the challenge from the proof's fields; SHALL make every
-check of the second requirement on the client data and the authenticator data,
-with the recorded origin as the only allowed origin, the recorded relying-party
-identifier, and the recorded backup flags as the values the proof must carry;
-and SHALL verify the signature under the recorded public key, whose fingerprint
-SHALL be the one the record names. Where the relying domain bound that key
+identifier, the public key, the backup eligibility and backup state the proof
+carries, and that party's statement that it obtained the proof in a session it
+began with the holder's client, which no relying party began or can join, and
+in which it identified the holder by its own means. The algorithm SHALL be the
+one the record names or, where it names none, the proof's own `alg`, which the
+derived challenge binds. The relying domain SHALL recompute the challenge from
+the proof's fields; SHALL make every check of the second requirement on the
+client data and the authenticator data, with the recorded origin as the only
+allowed origin, the recorded relying-party identifier, and the recorded backup
+flags as the values the proof must carry; SHALL refuse a recorded origin that it
+allows for its own sign-offs; and SHALL verify the signature under the recorded
+public key, whose fingerprint SHALL be the one the record names. Where the relying domain bound that key
 itself, it SHALL also check that the recorded relying-party identifier is its
 own and that the credential identifier is the one it bound. It SHALL compare no
 signature counter, and SHALL NOT treat the check as checking that party's
@@ -417,6 +460,12 @@ an identified session SHALL NOT be relied on.
 
 - WHEN a recorded proof's client data names an origin other than the recorded
   one
+- THEN the check fails
+
+#### Scenario: a recorded proof made on the relying domain's own page
+
+- WHEN a recorded proof's origin is one the relying domain allows for its own
+  sign-offs
 - THEN the check fails
 
 #### Scenario: a recorded proof from another credential

@@ -57,12 +57,16 @@ One NEW capability, `wallet-webauthn-proof`, a sibling of the ratified
 - a credential is bound from a registration and a following proof in the
   holder's own session, and works only at the relying party it is scoped to (D4);
 - a party other than that relying party, such as a licence verifier, accepts a
-  key's proof of possession only within a session in which it identified the
-  holder itself, independently of the relying party; a relayed proof is never
+  key's proof of possession only in a session it began with the holder's client
+  itself, which the relying party neither began nor can join, and in which it
+  identified the holder itself; the profile cannot tell whether that client is
+  administered by the relying domain's operator; a relayed proof is never
   accepted (D5);
 - the profile tells a synced passkey from a device-bound key by the backup flags,
   and says what it cannot tell, among it which device signed and who controls the
-  account a passkey syncs through (D6);
+  account a passkey syncs through; the holder declares at registration that the
+  device, browser and any sync account are theirs and not administered by the
+  practice (D4, D6);
 - a credential's custody is declared with its backup eligibility and the basis of
   the declaration, attested or the holder's word, beside it; a security key may
   declare `isolated_per_use_authorized`; no synced passkey is bound until the

@@ -155,7 +155,7 @@ where a sign-off needs it:
 
 | Check | Level 3 | This profile |
 |---|---|---|
-| Binding | Not in Level 3. The ratified sibling: "accept binding metadata only from a trusted server registry; client proof data SHALL NOT supply a public key. The binding SHALL be current, unrevoked and time valid" | The same: the binding comes only from the trusted server registry and is current, unrevoked and time valid; the public key, the relying-party identifier and the allowed origins come only from it, never from the proof. |
+| Binding | Not in Level 3. The ratified sibling: "accept binding metadata only from a trusted server registry; client proof data SHALL NOT supply a public key. The binding SHALL be current, unrevoked and time valid" | The same: the binding comes only from the trusted server registry and is current, unrevoked and time valid; the public key, the relying-party identifier and the allowed origins come only from it, never from the proof. A verifier's session binding (D5) and a recorded proof (D5) are the stated exceptions, and a later verification of a proof already verified checks the binding as recorded then, never claiming it is still current. |
 | Parsing the client data | §7.2: "an implementation-specific JSON parser" | UTF-8 JSON with no repeated member, so that every verifier reads one origin and one challenge, as the ratified profile refuses "duplicate JSON keys" in its proofs. |
 | `type` | §7.2: "Verify that the value of C.type is the string webauthn.get." | `webauthn.get`; a registration response (`webauthn.create`) is never a proof. |
 | `challenge` | §7.2, §13.4.3 | The base64url encoding of the challenge derived in D1. |
@@ -174,10 +174,14 @@ where a sign-off needs it:
 **What a verification returns** (PROPOSED). With the verified facts, the four
 flags as the authenticator signed them, named `user_present`, `user_verified`,
 `backup_eligible` and `backup_state`, and the counter flag,
-`sign_count_not_increasing`. With a refusal, its reason and whether the
-signature verified under the binding's public key, so that whoever records the
-refusal, such as openSig, can tell bytes the authenticator signed from bytes a
-caller chose (D9).
+`sign_count_not_increasing`. With a refusal, its reason and
+`signature_verified`, which says whether the signature verified under the
+binding's public key, so that whoever records the refusal, such as openSig, can
+tell bytes the authenticator signed from bytes a caller chose (D9). The
+signature is checked whenever a binding was found and the proof decoded,
+whatever else failed; a signature not checked reports as not verified. A refusal
+that reports a verified signature is never evidence of possession: it tells the
+caller only what the public key in the binding already lets anyone compute.
 
 **Who keeps the counter and the backup state** (PROPOSED). As in the ratified
 profile, the verifier itself keeps no state: "the registry and challenge issuer
@@ -185,11 +189,17 @@ own those decisions" (its design). The registry keeps the credential's last
 signature counter and current backup state beside the binding, not in its
 revisioned record, and updates them after a proof verifies, as §7.2's last step
 describes. An update therefore never revises the binding, so it never fails a
-proof in flight, whose challenge binds `binding_revision`. The counter is
-compared once, when the proof is first verified, and the flag is recorded
-beside the binding with that proof; a later verification of the same proof, by
-openSig, the relying party or an honest check, reports the recorded flag and
-does not compare the counter again, since the counter has since moved on.
+proof in flight, whose challenge binds `binding_revision`. The registry, which
+alone writes the counter, compares it once for each derived challenge, at the
+first verification of a proof with that challenge made against its own record,
+and records the flag beside the binding, keyed by the derived challenge rather
+than by the proof's bytes, so that a proof whose ES256 signature was rewritten
+is not compared again. A verifier that holds only a read-only replica, such as
+openSig in some deployments, reports the flag recorded for that challenge and,
+where none is recorded yet, has the registry make that first comparison before
+it reports. A later verification of the same proof, by openSig, the relying
+party or an honest check, reports the recorded flag and does not compare the
+counter again, since the counter has since moved on.
 
 ## D3 — The algorithms the profile admits (PROPOSED, WP-3)
 
@@ -278,12 +288,16 @@ relying-party identifier; the allowed origins, by exact string; the credential
 identifier; the public key in its raw form and its algorithm (D3); the backup
 eligibility and backup state the registration reported; whether user
 verification was performed at registration (§7.1's `uvInitialized`); the
-attestation format, the authenticator's model identifier (AAGUID) where one was
-given, and the result of the domain's attestation policy, including that none
-was given (§7.1); the basis of the key's declared custody, `custody_basis`,
-`attested` or `declared` (D7); and, for a multi-device credential once one can be bound (D7),
-the holder's declaration that the account it syncs through is theirs alone and
-is not administered by the relying domain's operator (D6). The signature counter
+attestation format, the attestation object itself, which §7.1 lets a credential
+record keep, the authenticator's model identifier (AAGUID) where one was given,
+and the result of the domain's attestation policy, including that none was
+given (§7.1); the basis of the key's declared custody, `custody_basis`,
+`attested` or `declared` (D7); and the holder's declaration (D8, Open question
+15): that the device and browser through which it registers the key, and
+through which it completes any verifier's session, are under its control and are
+not administered by the relying domain's operator; and, for a multi-device
+credential once one can be bound (D7), that the account it syncs through is its
+own alone and is not administered by that operator. The signature counter
 and the current backup state are kept beside the binding, not in its revisioned
 record (D2). A credential identifier already bound is refused, as §7.1
 recommends.
@@ -319,10 +333,21 @@ scoped to the deployment's relying-party identifier signed the verifier's
 challenge, with the user present and verified, at the verifier's page. It does
 not show whose credential that is. The deployment is that relying party: it can
 register a credential of its own, under its own identifier, and present it at
-the verifier's page with a wallet record it supplies. So a proof ties a key to
-the licensee only where the verifier identified the licensee itself, by its own
-means and independently of the deployment, in the session in which the key
-proved possession.
+the verifier's page with a wallet record it supplies. A browser, a browser
+extension, a device or a passkey provider that the practice administers can do
+the same from the practitioner's own screen: it can answer the verifier's request
+itself, with a software credential the operator registered under the deployment's
+identifier. An assertion carries no attestation (§5.5's request options have no
+member for one), and "the authenticator may be embedded in the client, and its
+bindings may be no more trustworthy than the client data" (§6.1), so the
+verifier cannot tell. And a deployment that can start or join the verifier's
+session, for instance through a link or token it hands the practitioner, can
+complete the key step from its own client once the practitioner is identified.
+So a proof ties a key to the licensee only where the verifier identified the
+licensee itself, by its own means and independently of the deployment, in a
+session the verifier began with the practitioner's client itself, which the
+deployment neither began nor can join, and only as far as that client is the
+practitioner's own, which no verifier can tell.
 
 **The options:**
 
@@ -336,7 +361,7 @@ proved possession.
   The verifier checks the proof under the public key the practitioner's wallet
   record declares, which ties the proof to that key and no other; that the key
   is the licensee's rests on the verifier's own identification of the licensee
-  in that session. The limits: a client supports it only optionally ("WebAuthn
+  in that session, and on the client being the practitioner's own. The limits: a client supports it only optionally ("WebAuthn
   Clients supporting this feature", §5.11), and says so through the
   `relatedOrigins` client capability (§5.8.7); the deployment controls the list,
   and can withdraw it, which refuses service and forges nothing.
@@ -357,13 +382,17 @@ proved possession.
   licensee in that session can.
 
 **The condition, as a duty** (PROPOSED). A party other than the credential's
-relying party accepts a proof of possession only within a session in which it
-identified the holder by its own means, independently of the relying party, and
-obtained the proof from the holder's own client in that session. openWallet's
-draft practitioner profile states the same as a duty on the licence verifier: a
-verification names a key only on such a proof. How the verifier identifies the
-licensee is its own record, which neither this profile nor a relying domain can
-check.
+relying party accepts a proof of possession only in a session it began with the
+holder's client itself, which the relying party neither began nor can join, in
+which it identified the holder by its own means, independently of the relying
+party, and only from that client. It records the holder's declaration that the
+client is under the holder's control and is not administered by the relying
+domain's operator (D4). openWallet's draft practitioner profile states the same
+as a duty on the licence verifier: a verification names a key only on such a
+proof. The profile cannot tell whether that client, or the authenticator it
+uses, is administered by the relying domain's operator; how the verifier
+identifies the licensee, and the holder's declaration, are records neither this
+profile nor a relying domain can check.
 
 **A relayed proof is never accepted** (PROPOSED). A proof that reached the
 verifier through the deployment cannot meet the condition, so no licence
@@ -382,7 +411,9 @@ as a sign-off.
 no registration behind it. It is made for the session, and records: the
 deployment's relying-party identifier; the verifier's own origin, as its only
 allowed origin; the credential identifier, as the holder presents it; the public
-key and algorithm the holder's wallet record declares for the key; and the
+key and algorithm the holder's wallet record declares for the key, or one the
+holder presents whose fingerprint the record declares, since
+`public_key_multibase` is optional in a wallet record; and the
 backup eligibility and backup state the proof carries. Every check of D2 applies
 to it, with three differences: it is current for that session only; backup
 eligibility is recorded from the proof rather than compared with a registration;
@@ -391,12 +422,16 @@ registration would give (`uvInitialized`, attestation, model identifier).
 
 **Checking a recorded proof** (PROPOSED, WP-12). A licence verification records
 each proof with what checking it needs: the relying-party identifier, the
-verifier's origin, the credential identifier, the public key and its algorithm,
-the backup flags the proof carries, and the verifier's statement that it
-obtained the proof within the session in which it identified the licensee. A
-relying domain checks a recorded proof from those and the proof alone. It
+verifier's origin, the credential identifier, the public key, the backup flags
+the proof carries, and the verifier's statement that it obtained the proof in a
+session it began with the practitioner's client, which no relying domain began
+or can join, and in which it identified the licensee. The algorithm is the
+proof's own `alg`, which the derived challenge binds, unless the record names
+one. A relying domain checks a recorded proof from those and the proof alone. It
 recomputes the challenge from the proof's fields; checks the client data as D2
-does, with the recorded verifier origin as the only allowed origin; checks the
+does, with the recorded verifier origin as the only allowed origin, and refuses
+a recorded origin that it allows for its own sign-offs, which catches a proof
+made on the deployment's own page; checks the
 relying-party identifier hash against the recorded identifier, the user present
 and user verified flags, the attested-data flag, and that the backup flags are
 the recorded ones; and verifies the signature under the recorded public key,
@@ -406,7 +441,8 @@ its own and that the credential identifier is the one it bound. It compares no
 counter and checks no binding state, and it cannot check the verifier's
 challenge, the statement behind it or the verifier's identification of the
 licensee, which are the verifier's own. A record without the verifier's
-statement of an identified session is not relied on.
+statement of an identified session is not relied on; openWallet's draft
+practitioner profile names that refusal `identified_session_missing`.
 
 REJECTED:
 
@@ -456,10 +492,10 @@ device: as far as the authenticator reports BE truthfully.
   controls or can recover that account can obtain the passkey on a device of
   their own and verify there; the plain case is a managed work account that the
   practice administers. Level 3 gives a relying party no means to learn which
-  account holds a credential. The profile records, for a multi-device credential,
-  the holder's declaration that the account is theirs alone and is not
-  administered by the relying domain's operator (D4), and that declaration is the
-  holder's word (Open question 12).
+  account holds a credential. It is one case of the wider limit in D8: whoever
+  administers or can recover the device, browser, extension or passkey provider
+  the practitioner uses. The holder's one declaration covers it (D4), and that
+  declaration is the holder's word (Open questions 12 and 15).
 
 ## D7 — Custody: which model such a key declares (PROPOSED, WP-7; Open question 1)
 
@@ -481,7 +517,11 @@ the flag clear. So the binding records what the declaration rests on, as
 `custody_basis` (PROPOSED), from a closed set of two: `attested`, where the relying domain's
 attestation policy accepted attestation evidence that the authenticator keeps the
 key isolated and verifies its user; or `declared`, where it rests on the holder's
-word. A relying domain sees which, and decides what it accepts.
+word. A relying domain sees which, and decides what it accepts. `attested` rests
+on the relying domain's own record of its policy's result, which whoever runs the
+deployment can alter, so the binding keeps the attestation object (D4) for an
+honest check to verify later. Until such a check verifies it against an
+attestation root it trusts, `attested` is the relying domain's own claim.
 
 **A synced passkey does not fit honestly.** Its two properties look right on each
 device: no application can read the key, and each use needs verification on the
@@ -534,6 +574,12 @@ controls that code. So it can:
 - record in its own registry whatever bindings it likes, which matters only
   where a verifier did not identify the licensee and obtain the key's proof
   itself (D5);
+- answer a verifier's request from a browser, a browser extension, a device or a
+  passkey provider it administers or can recover, with a credential it
+  registered, and submit a wallet record declaring that key; or start or join a
+  verifier's session and complete its key step from a client of its own, which
+  the condition of D5 forbids but the verifier can enforce only for sessions it
+  controls (D5);
 - where it administers, or can recover, the account a practitioner's synced
   passkey syncs through, obtain that passkey on a device of its own and sign
   with it (D6).
@@ -549,21 +595,27 @@ profile the words hold only on conditions it states and cannot meet by itself:
 1. the verification is signed by a verifier key that ships with a release of the
    relying system (openWallet's draft practitioner profile);
 2. the verifier identified the licensee itself, by its own means and
-   independently of the deployment, in the session in which each named key
-   proved possession (D5); that rests on the verifier's own record, which
-   neither this profile nor a relying domain can check, and no relayed proof can
-   meet it;
+   independently of the deployment, in a session it began with the
+   practitioner's client itself, which the deployment neither began nor can
+   join, and in which each named key proved possession (D5); that rests on the
+   verifier's own record, which neither this profile nor a relying domain can
+   check, and no relayed proof can meet it;
 3. the signer is read from the verification, never from an account (openWallet's
    draft practitioner profile).
 
-They do not reach two cases. **A synced passkey's account.** Whoever controls or
-can recover the account a synced passkey syncs through, such as a managed work
-account the practice administers, can sign with the practitioner's own key
-without the practitioner. Under the reading above that is not a forgery, since
-the key is the practitioner's, yet it is what the ruling asks about. The profile
-cannot see which account holds a passkey; it records the holder's declaration
-(D4, D6), and the limit is put to the owner (Open question 12). **Content
-substitution.** A deployment that shows one statement and has the key sign
+They do not reach two cases. **A client, device or provider the practice
+administers.** Whoever administers or can recover the device, the browser, an
+extension in it, or the passkey provider that the practitioner uses to register a
+key or to complete the verifier's session can do so without the practitioner. It
+can answer the verifier's request with a credential it registered, which the
+verifier cannot tell from the practitioner's; where the practitioner registered
+through such a browser, every later sign-off can be made without them, which is
+a forgery even under the reading above, and an honest check accepts it. Through
+a synced passkey's account it can sign with the practitioner's own key, which
+under the reading above is not a forgery, yet is what the ruling asks about. The
+profile cannot see who administers a client or which account holds a passkey;
+it records the holder's declaration (D4), and the limit is put to the owner
+(Open questions 12 and 15). **Content substitution.** A deployment that shows one statement and has the key sign
 another obtains a genuine signature by the practitioner's key and gesture. That
 is not a sign-off made without the key, so it is not a forgery in the sense the
 ruling's reason gives, but it is a sign-off the practitioner did not intend, and
@@ -590,13 +642,17 @@ seals the result. Checked against this profile:
   caller can choose until the signature binds them, and the client data can carry
   members a client adds (§5.8.1). openSig's rule of sealing the whole proof only
   where every reference matches the binding is therefore not enough for this
-  profile: openSig seals a passkey proof whole only once its signature has also
-  verified under the binding it found, which openWallet's verification reports
-  with any refusal (D2), and otherwise seals only the proof's SHA-256. That keeps
+  profile: openSig seals a passkey proof whole only where its `credential_id` and
+  `binding_revision` also equal the binding's, since a caller could otherwise
+  rewrite the credential identifier after signing and have up to 1023 bytes of
+  its own text sealed, and only once its signature has also verified under the
+  binding it found, which openWallet's verification reports as
+  `signature_verified` with any refusal (D2); otherwise it seals only the
+  proof's SHA-256. That keeps
   unsigned bytes a caller chose out of openSig's signed, durable record. The
   flags it records are named as D2 names them.
-- **The counter flag** it records is the one recorded at the proof's first
-  verification (D2).
+- **The counter flag** it records is the one the registry recorded for the
+  proof's derived challenge (D2).
 - **Retries.** openSig compares an identical retry by the proof's canonical
   form. An ECDSA signature is not unique (D3), so a malleated repeat differs and
   is refused, never attested twice.
@@ -606,11 +662,14 @@ seals the result. Checked against this profile:
   `topOrigin` present (`top_origin_present`); the relying-party identifier
   (`relying_party_mismatch`); user presence or verification
   (`user_not_verified`); the attested-data flag set (`attested_data_present`);
-  backup eligibility changed (`backup_eligibility_changed`); an algorithm other
-  than the binding's (`algorithm_mismatch`). An algorithm this profile does not
-  admit fails its strict decoding, as an unsupported profile does. A binding that
-  is not current, unrevoked and time valid is `binding_not_current`, as under the
-  ratified profile.
+  backup eligibility changed (`backup_eligibility_changed`); a backup state flag
+  set while eligibility is clear (`backup_state_invalid`); an algorithm other
+  than the binding's (`algorithm_mismatch`). Authenticator data that does not
+  parse, and an algorithm this profile does not admit, are `proof_malformed`. A
+  binding that is not current, unrevoked and time valid, or a credential
+  identifier other than the binding's, is `binding_not_current`. No existing
+  reason is renamed, and with these the list is closed: every refusal of D2 and
+  D3 has exactly one reason.
 
 Those revisions are made in openSig-spec#4 alongside this change.
 
@@ -662,17 +721,17 @@ the owner.
 | # | Design call | Where |
 |---|---|---|
 | WP-1 | The challenge is SHA-256 over a domain separator and RFC 8785 of the proof's ten unsigned binding fields, so the proof binds what the ratified profile binds and the relying party; the derived challenge, unpredictable only through the statement's reference, which the challenge issuer must draw at random, 32 bytes, server-side, and use once; exactly one credential per request, which rules out discoverable-credential sign-in; the closed wire form, 8192 bytes, `alg` an integer, client data kept as bytes. | D1 |
-| WP-2 | The checks on every use: the binding current, unrevoked and time valid and the only source of the key, the relying-party identifier and the origins; client data with no repeated member; type, challenge, exact origin, no cross-origin use, relying-party identifier hash, user presence and verification always, no attested data, backup flags; the counter and current backup state kept beside the binding, outside its revisioned record; the counter compared once and its flag recorded, never refused alone; the returned flags named `user_present`, `user_verified`, `backup_eligible`, `backup_state` and `sign_count_not_increasing`, and a refusal reporting whether the signature verified; unknown client data members and extensions ignored. | D2 |
+| WP-2 | The checks on every use: the binding current, unrevoked and time valid and the only source of the key, the relying-party identifier and the origins; client data with no repeated member; type, challenge, exact origin, no cross-origin use, relying-party identifier hash, user presence and verification always, no attested data, backup flags; the counter and current backup state kept beside the binding, outside its revisioned record; a counter that does not increase flagged and recorded, never refused alone; the returned flags named `user_present`, `user_verified`, `backup_eligible`, `backup_state` and `sign_count_not_increasing`, and a refusal reporting `signature_verified`, checked whenever a binding was found and the proof decoded, never evidence of possession; the counter compared once per derived challenge by the registry, which alone writes it; unknown client data members and extensions ignored. | D2 |
 | WP-3 | ES256 and EdDSA with Ed25519 only; `-8` and `-7` offered at registration, `-9` and `-19` recorded as them and refused in a proof; strict encodings, canonical Ed25519 signatures; the raw key form and the P-256 fingerprint over the compressed point, cited against the successor `add-trust-anchors-and-machine-holders` names; no reliance on signature uniqueness. | D3 |
-| WP-4 | Binding from a registration and a following proof in the holder's own session; what the binding records, `custody_basis` and the sync-account declaration among it; one relying party per credential, and more than one credential per deployment allowed. | D4 |
-| WP-5 | A party other than the relying party accepts a proof only within a session in which it identified the holder itself, independently of the relying party, by related origins or a native client for a security key; a relayed proof is never accepted, and carries no marker; what a verifier's binding records and which checks apply to it; a verifier's origin is never a sign-off origin. | D5 |
+| WP-4 | Binding from a registration and a following proof in the holder's own session; what the binding records, the attestation object, `custody_basis` and the holder's one declaration about its client, device and sync account among it; one relying party per credential, and more than one credential per deployment allowed. | D4 |
+| WP-5 | A party other than the relying party accepts a proof only in a session it began with the holder's client itself, which the relying party neither began nor can join, in which it identified the holder itself, by related origins or a native client for a security key, recording the holder's declaration about that client; the profile cannot tell whether the client is administered by the relying domain's operator; a relayed proof is never accepted, and carries no marker; what a verifier's binding records, its key from the wallet record or presented with a declared fingerprint, and which checks apply to it; a verifier's origin is never a sign-off origin. | D5 |
 | WP-6 | Backup eligibility recorded at registration and backup state on each use; what the profile can and cannot tell, the sync account among it; enrolment is the relying domain's. | D6 |
-| WP-7 | A single-device credential may declare `isolated_per_use_authorized`, with the basis of the declaration, `attested` or `declared`, recorded; no multi-device credential is bound while no model of the registry describes it, and no interim model is proposed. | D7 |
-| WP-8 | The threat model: what origin binding stops, what a deployment can still do, the conditions under which ruling 214's words hold, and the two cases they do not reach. | D8 |
-| WP-9 | openSig attests proofs under this profile, sealing a passkey proof whole only once its signature verified, with the revisions D9 names. | D9 |
+| WP-7 | A single-device credential may declare `isolated_per_use_authorized`, with the basis of the declaration, `attested` or `declared`, recorded, and `attested` the relying domain's own claim until an honest check verifies the kept attestation object; no multi-device credential is bound while no model of the registry describes it, and no interim model is proposed. | D7 |
+| WP-8 | The threat model: what origin binding stops, what a deployment can still do, the conditions under which ruling 214's words hold, and the two cases they do not reach: a client, device or provider the practice administers, and content substitution. | D8 |
+| WP-9 | openSig attests proofs under this profile, sealing a passkey proof whole only where its credential identifier and binding revision also match and its signature verified; the closed list of reasons, `backup_state_invalid` added; with the revisions D9 names. | D9 |
 | WP-10 | The non-goals. | D10 |
 | WP-11 | Placement, names, code surface, what Level 3's examples can serve as, and release class. | D11 |
-| WP-12 | A relying domain checks a recorded proof from the proof and what is recorded with it, against its own relying-party identifier and bound credential where it bound the key, and never relies on a record without the recording party's statement of an identified session. | D5 |
+| WP-12 | A relying domain checks a recorded proof from the proof and what is recorded with it, the proof's signed `alg` serving where the record names no algorithm, against its own relying-party identifier and bound credential where it bound the key, refusing a recorded origin it allows for its own sign-offs, and never relies on a record without the recording party's statement of an identified session. | D5 |
 
 ## Open questions for ratification
 
@@ -691,16 +750,23 @@ recommendation. None is ruled.
    `isolated_per_use_authorized` covers such a key, read device by device, with
    the backup eligibility recorded beside it. Recommendation: (a), because every
    consumer reads the registry and should not have to know to look for a flag.
-   What follows: every bound key declares a model, and none describes a synced
-   passkey, so until a model that fits is ratified no synced passkey can be bound
-   under this profile, and ruling 209's yes for synced passkeys waits on this
-   question. This change proposes no interim model.
+   What follows from (a): every bound key declares a model, and none describes a
+   synced passkey, so until a model that fits is ratified no synced passkey can be
+   bound under this profile, and ruling 209's yes for synced passkeys waits on
+   this question. This change proposes no interim model. What follows from (b):
+   ruling 209's yes for synced passkeys takes effect now, at the cost that the
+   registry's statement that such a key "evidences that the HOLDER acted" would
+   cover a key that an account takeover reaches.
 2. **How does a verifier observe a passkey's proof of possession?** (D5)
    Recommendation: related origins, with a native client for a security key where
-   related origins are not available, each only within a session in which the
-   verifier identified the licensee itself, by its own means and independently of
-   the deployment; and no relayed proof, so that no verification names a key on
-   one, since with one ruling 214 would rest on the deployment.
+   related origins are not available, each only in a session the verifier began
+   with the practitioner's client, which the deployment neither began nor can
+   join, and in which it identified the licensee itself, by its own means and
+   independently of the deployment; and no relayed proof, so that
+   no verification names a key on one, since with one ruling 214 would rest on
+   the deployment. What follows: a practitioner whose browser lacks related-origin
+   support and who uses a platform passkey cannot be verified, because the native
+   client option serves security keys only.
 3. **Which algorithms?** Recommendation: ES256 and EdDSA with Ed25519 only; add
    RS256 only if a practitioner's platform turns out to need it.
 4. **What follows from a counter that does not increase?** Recommendation: a flag
@@ -729,13 +795,13 @@ recommendation. None is ruled.
 11. **Refuse use from inside another site's frame?** Recommendation: yes; a sign-off
     is made on the relying domain's own page.
 12. **A synced passkey whose account someone else controls or can recover.** (D6,
-    D8) Whoever controls or can recover the account a synced passkey syncs through,
+    D8) This arises only once Open question 1 lets synced passkeys be bound.
+    Whoever controls or can recover the account a synced passkey syncs through,
     such as a managed work account the practice administers, can sign with the
     practitioner's own key without the practitioner, and the profile cannot see
     which account holds a passkey. Recommendation: accept it as a stated limit of
-    version 1; at registration the practitioner declares that the account holding
-    the passkey is theirs alone and is not administered by the practice, and the
-    declaration is recorded; a relying domain may require security keys.
+    version 1, covered by the second part of the one declaration of Open question
+    15; a relying domain may require security keys.
 13. **A security key with no PIN or biometric set.** Ruling 209 says "A security
     key always counts", and this profile requires user verification on every use
     (D2), which such a key cannot give; the registry counts "a hardware presence
@@ -749,14 +815,65 @@ recommendation. None is ruled.
     attestation (D6, D7). Recommendation: yes, treat a passkey that cannot sync
     like a security key, resting on the flag as the authenticator reports it, with
     the basis of its custody (`attested` or `declared`) recorded beside it so that
-    a relying domain can ask for attestation where it wants more.
+    a relying domain can ask for attestation where it wants more. What follows: a
+    software authenticator that reports the flag clear would count with no device
+    enrolment. The alternative: count a passkey that cannot sync like a security
+    key only when its basis is `attested`, which keeps software authenticators
+    out but turns away a practitioner whose authenticator gives no attestation
+    the domain trusts.
+15. **A client, device or passkey provider the practice administers.** (D5, D8)
+    Whoever administers or can recover the device, the browser, an extension in
+    it, or the passkey provider that the practitioner uses to register a key or to
+    complete the verifier's session can answer the verifier's request with a
+    credential it registered, and no verifier can tell. Recommendation: accept it
+    as a stated limit of version 1. The practitioner registers their keys and
+    completes the verifier's session on a device and browser that they control and
+    the practice does not administer, declares this, and the declaration is
+    recorded with the binding at registration and by the verifier for its
+    session. The declaration has two parts: the first covers the device, the
+    browser and its extensions used to register a key and to complete a verifier's
+    session; the second, for a synced passkey once one can be bound, covers the
+    account it syncs through (Open question 12). A relying domain that needs more
+    can require security keys whose attestation the verifier checks, which is a
+    later change.
+
+## Review record
+
+**An independent review of the first draft at `4d32fa1`: not ready, on two major
+findings.** Its findings and how this revision disposes of them:
+
+| Finding | Disposition |
+|---|---|
+| The binding's state was never required. | Taken: requirement 1 and D2; scenarios for a revoked and an expired binding. |
+| The threat model overstated what ruling 214 holds against. | Taken: the identified session (D5, requirement 5), no relayed proof, the synced passkey's account (D8). |
+| The derived challenge rested on a reference nothing required. | Taken: the challenge issuer's duty (D1, requirement 1). |
+| A counter update revised the binding. | Taken: counter and backup state beside the binding, the flag recorded once (D2). |
+| A verifier's binding had no registration behind it. | Taken: what it records and which checks apply (D5). |
+| No synced passkey can honestly be bound. | Taken: none is bound until the registry has a model (D7, Open question 1). |
+| A clear backup flag does not show isolation. | Taken: `custody_basis` (D7). |
+| User verification shuts out a security key with no PIN. | Put to the owner (Open question 13). |
+| Client data with a repeated member. | Taken: refused (D2). |
+| openSig sealed unsigned passkey bytes. | Taken in openSig-spec#4 (D9). |
+| Nits: `alg`, the offered algorithms, the key form, test vectors, the credential list, canonical Ed25519, the trust-anchors successor, the PROPOSED marks. | Taken (D1, D3, D11, the rulings section, `.openspec.yaml`). |
+
+**A confirmation of `fbb74f0`: not ready, on one new major finding.** Its findings
+and their dispositions:
+
+| Finding | Disposition |
+|---|---|
+| The verifier cannot tell whether the client that proves the key is the practitioner's own: an administered browser, extension, device or provider, or a session the deployment can start or join. | Taken: the session the verifier began, which the relying party neither began nor can join, and the profile's statement that it cannot tell (requirement 5, D5); the wider limit (D8); the holder's one declaration (D4); put to the owner (Open question 15). |
+| The rule on binding data had no exception for later verifications. | Taken (requirement 1). |
+| openSig did not compare `credential_id` and `binding_revision`. | Taken in openSig-spec#4 (D9). |
+| The list of reasons was not complete. | Taken: `backup_state_invalid`, three mappings, the list closed (D9). |
+| `attested` rests on the relying domain's own record. | Taken: the attestation object kept; `attested` is the domain's claim until checked (D4, D7). |
+| The owner's questions were not all stated fairly. | Taken (Open questions 1, 2, 12, 14). |
+| Nits: the task list, this record, the presented key, `signature_verified`, the first counter comparison, the recorded algorithm, a recorded origin the domain allows. | Taken (D2, D5, requirements 2, 5 and 9, `tasks.md`). |
 
 ## Status
 
-`Status: proposed`. One review has run: an independent review of the first draft
-at `4d32fa1`, which rated it not ready on two major findings (the binding's state
-was never required, and the threat model overstated what ruling 214 holds
-against) with minor findings and nits; this revision answers each. It found the
-quotations of the Recommendation and the registry exact. `tasks.md` 1.1
+`Status: proposed`. Two reviews have run: an independent review of the first draft
+at `4d32fa1`, and a confirmation of `fbb74f0`; this revision answers each finding
+of both, as the review record states. The first found the quotations of the
+Recommendation and the registry exact, and the second confirmed the new ones. `tasks.md` 1.1
 schedules a further adversarial review. Ratification is pending, by openWallet's
 operator authority, Brett Heap.

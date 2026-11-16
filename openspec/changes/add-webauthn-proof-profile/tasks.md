@@ -10,14 +10,22 @@ first.
 ## 1. Governance
 
 - [ ] 1.1 One adversarial review of this revision at `Status: proposed` (an
-      independent review of the first draft at `4d32fa1` has run; its findings
-      and their dispositions are in `design.md`), reading it against Web
+      independent review of the first draft at `4d32fa1` and a confirmation of
+      `fbb74f0` have run; their findings and dispositions are in `design.md`,
+      "Review record"), reading it against Web
       Authentication Level 3 (Recommendation of 25 August 2026), the
       IANA COSE Algorithms registry, the ratified `wallet-challenge-proof` and its
       ratification record, the closed custody registry, openWallet-spec#10 and
       openSig-spec#4. The verdicts go into `design.md` with their dispositions.
-- [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Rule on the open questions in `design.md`, the
-      first two first, and dispose of the design calls WP-1 to WP-11.
+- [ ] 1.2 **[OPERATOR] [GOVERNANCE]** Decide the open questions in `design.md`
+      that are the owner's: 1 (custody for a synced passkey), 12 (its account),
+      13 (a security key with no PIN), 14 (a passkey that cannot sync), 15 (a
+      client, device or provider the practice administers), and the policy half
+      of 2 (an identified session the verifier began, and no relayed proof).
+- [ ] 1.2a **[GOVERNANCE]** A reviewer settles the technical open questions, 3, 4
+      and 6 to 11, the technical half of 2 (related origins or a native client),
+      and 5 while it stays deferred, and the owner confirms them together, with
+      the design calls WP-1 to WP-12.
 - [ ] 1.3 **[OPERATOR] [GOVERNANCE]** Ratify or return. Brett Heap (openWallet
       operator authority).
 - [ ] 1.4 On ratification: `Status: ratified` and a `Ratified:` line carrying the
@@ -54,8 +62,11 @@ first.
       bound once; no multi-device credential bound while no model of the
       registry describes it (D7).
 - [ ] 3.5 A party other than the relying party accepts a proof only in a session
-      in which it identified the holder, never a relayed one; and the check of a
-      recorded proof (D5).
+      it began with the holder's client, which the relying party neither began
+      nor can join, in which it identified the holder, recording the holder's
+      declaration, never a relayed one; and the check of a recorded proof (D5).
+- [ ] 3.6 The counter compared once per derived challenge by the registry, and
+      `signature_verified` reported with every refusal (D2).
 
 ## 4. Composition
 
