@@ -1,3 +1,64 @@
+## Canonical coverage and validation extraction candidate (2026-11-17)
+
+Status: prepared from openXfactory #1337 at 41eab21570efbd942f49b6ca728d286492adf02a; provider
+main admission remains pending. Existing validation/reconciliation and final
+reporting are extracted without changing execution order, refusal handling,
+messages, return codes or workspace lifetime. Canonical embedding is tested at
+its actual source filename, while the separate source/bytecode attack tests
+retain their scratch paths. All214 provider assertions pass; all193 original
+assertions remain byte-identical. Actual changed-code line/branch coverage is
+100% for the installer and98.21% for the verifier. Full hosted CI remains pending.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 53437679d7f7a8a398d7408ff173898c645219b85aa3c324f979c39f2d980ba7 | 081e06361fdd030c5782ca708b25089179ba0efbc9aa39252613a2501b38d382 |
+| scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | a1263f1ebc4e325296b890e1f79d71d211605fbd793e244a7ff25f09787707aa |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | 5fcf3ef2d1d4b01afc3f120b88c97b160f79b2daae7255aa0e81190a3c05ec4f |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
+Earlier entries below remain historical evidence.
+
+## Authenticated embedding candidate (2026-11-16)
+
+Status: prepared from openXfactory #1337 at bd9859850a7939c8e3120dfaeada020ecef4b083; provider
+main admission remains pending. The trusted Python embedding interface accepts
+the verifier module compiled from authenticated source before initializing the
+installer. It never rereads verifier source or cached bytecode in embedding mode.
+Standalone imports and all pin/profile/context controls retain their behavior.
+
+The provider suite passes all 211 assertions, including source substitution
+and timestamp-valid forged bytecode regressions. All 193 original cases remain.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 69c658e0e1fb122e9835fafc5e3078e966f9a7b6c33af95654ec245ddbfe4caf | 1be7c94085f497b83c1e78a7293f5a77e41630e3aa91287c4a0b9509bbe72660 |
+| scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | 2614677787febf47f9d230e0e7eef93c46b5d9bedf5b6d659f7928eb5d1ab62c |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | 51d892a992ddc328da73e5fbd960f2c63fb5d040e251fa6fd748df8ac260cb22 |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
+Earlier entries remain historical evidence.
+
+## Shared consumer-context candidate (2026-11-16)
+
+Status: prepared from openXfactory PR #1337 at 91c6f36b2caeba5f230ebd201a604f863ee4bfef;
+provider main admission is pending. The consumer context is an explicit trusted
+API argument. Standalone defaults and independent operator pin selection retain
+their existing precedence. The adapter can delegate to these authenticated
+shared sources while retaining its own pin, lock and validation corpus.
+
+The complete provider suite now contains 209 assertions, retaining all 193
+original cases and adding 16 context-boundary cases. CLI version, package lock,
+tarball and validation strictness are unchanged. This record supersedes the
+current-source statement below; all older preparation and admission receipts
+remain historical evidence.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 69c658e0e1fb122e9835fafc5e3078e966f9a7b6c33af95654ec245ddbfe4caf | 83071ffeaee05b6c516d58a97d0deb63ce1a9df8be3c0d1f303af3f2052c071e |
+| scripts/install-pinned-openspec-cli.py | ca335c19e42a88ccc306d1c33543f60183cc070c4419f84758c50ba05577674a | 72a74f605283309273cfc38a5f8c294652faf65e49c1d43ab560ef8a8fddb6bc |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | c9a50270f6b1a2c3516c4fbae1bf0922543ae4a0aadf242963b03bad28e7d072 |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
 ## Provider main admission (2026-11-16)
 
 openXfactory #1333 is merged at 828d88c2ca9d7bcf551e1759c847a9789c5c2066.

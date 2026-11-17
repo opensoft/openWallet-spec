@@ -20,3 +20,17 @@ None. Credential carriage remains forbidden.
 ## Impact
 
 Neutral code workflows and negative fixture, pinned common spec tooling, root shape and leg pins. Authorized by Brett Heap's openXwallet #73 repair instruction on 2026-11-16. Speckit feature 018 owns the only executable implementation task list; this is not runtime activation authority.
+
+## Full-main amendment (2026-11-16 America/La_Paz)
+
+The first complete openXwallet main analysis naturally fixed all eight original
+keys, but exposes the reference service's unconfined CLI config read and a
+noncanonical lock filename. Complete the same unchanged gate by confining config
+reads to an independently selected operator root, retaining bounded descriptor
+reads and existing config-field cwd semantics, and publishing the exact reviewed
+18-package wheel closure as requirements.txt with a compatible old-lock include.
+Consume the provider's explicit consumer-root tooling API so the outer adapter
+can execute this leg's visible canonical OpenSpec scripts without copying them.
+Standalone spec behavior, local pins/locks/tarball/corpus, offline checks, eight
+manifest-owned artifacts and immutable release tags stay intact. Feature 019
+owns the amendment's executable list; feature 018 records the original handoff.

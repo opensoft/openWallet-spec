@@ -28,3 +28,25 @@ Land provider fixes, then consuming legs, then the neutral root and adapter pins
 ## Open Questions
 
 Fixture provenance and final retained-baseline ancestry are verification tasks, not inferred approvals.
+
+## Main-only source amendment
+
+The CLI config operand never establishes its own allowed root. The default is
+the invocation directory; OPENWALLET_REFERENCE_CONFIG_ROOT is separate operator
+configuration for existing external locations and must select a bounded existing
+directory. Admit regular operator/root-owned, non-group/world-writable files,
+walk below the selected root without following links, and read at most the
+existing request-document bound plus one byte. Refuse invalid paths, permissions,
+non-regular files and oversize before registry, key/TLS or listener effects.
+Paths inside admitted config JSON keep resolving from process cwd as before.
+Keep all runtime dependency versions and wheel hashes unchanged; the canonical
+requirements.txt contains the full existing closure and the old lock forwards
+without changing binary/hash-enforced installation. No build backend runs.
+
+The neutral spec retains the sole full canonical verifier/installer source.
+Re-vendor the provider's explicit consumer-root API with byte provenance; do not
+edit a copied provider body. Its own CLI stays standalone and selects this leg's
+pin/corpus. A consumer may call the API with its separately verified root to
+select that consumer's own pin/corpus. Operator pin authority and every existing
+integrity/cache/lock/refusal check remain; no live credential or activation is
+part of this source repair.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; do not edit here.
+# VENDORED from opensoft/openXfactory@41eab21570efbd942f49b6ca728d286492adf02a; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Install the PINNED OpenSpec CLI and put it on PATH. Judge nothing.
@@ -91,6 +91,7 @@ import importlib.util
 import os
 import sys
 from pathlib import Path
+from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts" / "validate-openspec-cli-pin.py"
@@ -106,6 +107,15 @@ def _load_verifier():
     does the pin name" would be the second copy of the pin this script exists to
     remove.
     """
+    # Trusted embedders may initialize the module with an already authenticated
+    # verifier. This is a Python embedding input, never a CLI or environment
+    # selector. It avoids reopening source or accepting cached bytecode after
+    # the caller has authenticated the complete source snapshot.
+    if "VERIFIED_VERIFIER" in globals():
+        selected = globals()["VERIFIED_VERIFIER"]
+        if not isinstance(selected, ModuleType):
+            raise TypeError("VERIFIED_VERIFIER must be an authenticated module")
+        return selected
     spec = importlib.util.spec_from_file_location(
         "openspec_cli_pin_verifier", VERIFIER)
     if spec is None or spec.loader is None:  # pragma: no cover - unreachable
@@ -151,11 +161,11 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, consumer_root=None) -> int:
     args = build_parser().parse_args(argv)
 
     try:
-        verifier.authorize_cli_sources(args)
+        verifier.authorize_cli_sources(args, consumer_root=consumer_root)
         args.npm = verifier.trusted_npm_executable(args.npm)
         pin_path = Path(args.pin)
         pin = verifier.read_pin(pin_path)
