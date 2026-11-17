@@ -1,3 +1,25 @@
+## Admitted neutral source and handoff (2026-11-17)
+
+Provider source 41eab21570efbd942f49b6ca728d286492adf02a is admitted on main
+at 53475872efea351bd6bd65994428ea6692b150f4. Its merge tree is identical to
+the reviewed source. Full source CI and all six PR conditions passed at 98.5%
+new coverage and 0.0% duplication, with A ratings and every hotspot reviewed.
+Provider post-merge CI is tracked separately.
+
+This spec is admitted at 0fe3151ccc2f3ffe7f72cca35106df46c180b5b7, code at
+ed567edb18a866b16515c86049bfdcdd4722dde9, and the coherent neutral root at
+050bede0263255b1ce94bb312ad7ca63104c7e18. All eight contract-artifact hashes
+and release labels are unchanged. Both actual consumer contexts pass all 214
+immutable provider assertions without skips; both real CLI corpora pass seven
+strict targets. Standalone spec validation passes nine tests and six subtests.
+Exact source-admission evidence is handed to
+[openXwallet #73](https://github.com/opensoft/openXwallet/issues/73), whose
+separate actual-main quality-gate acceptance remains pending.
+
+The earlier candidate/preparation records below are historical qualification
+snapshots, including their then-pending admission states. This documentation
+reconciliation does not change common source, pins, artifacts or authority.
+
 ## Canonical coverage and validation extraction candidate (2026-11-17)
 
 Status: prepared from openXfactory #1337 at 41eab21570efbd942f49b6ca728d286492adf02a; provider
