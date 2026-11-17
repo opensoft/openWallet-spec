@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@59c4931fd89811f07f1a02046424a0fa78a2c92a; do not edit here.
+# VENDORED from opensoft/openXfactory@7aaa749d2defc6ab7e18ffd428283c1ab8dd19c0; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Run OpenSpec strict validation through the PINNED CLI, and refuse otherwise.
@@ -800,14 +800,14 @@ def pinned_integrity(pin: dict) -> tuple[str, str]:
     try:
         raw = base64.b64decode(integrity.strip()[len("sha512-"):], validate=True)
     except (ValueError, TypeError) as exc:
-        # Historical explicit-catch rationale (PR #813), preserved below.
-        # `binascii.Error` IS a `ValueError` subclass, so the pair alone already
-        # closed this path — a value matching `INTEGRITY_RE` with impossible
-        # padding refuses `pin-tag-only` rather than raising. It is NAMED anyway,
-        # because the guard a reader has to derive from the exception hierarchy
-        # is a guard the next reader will ask about (as review of PR #813 did),
-        # and because `base64.b64decode`'s own documented exception should be
-        # legible at the site that catches it.
+        # Review of PR #813 traced impossible padding in an address that
+        # matches INTEGRITY_RE. base64.b64decode raises binascii.Error there.
+        # Python defines binascii.Error as a subclass of ValueError, and the
+        # catch above turns the decoder failure into the named pin refusal.
+        # test_a_malformed_lockfile_address_is_a_named_refusal_and_not_a_traceback
+        # checks both the exception relationship and the observed result.
+        # The same rule applies to the lockfile address below.
+        # TypeError also converts to the same named refusal.
         raise PinRefusal(
             "pin-tag-only",
             f"the pin's integrity {integrity!r} is not decodable base64: "
@@ -890,10 +890,10 @@ def pinned_lockfile(pin: dict, pin_path: Path) -> tuple[Path, str, int]:
     try:
         raw = base64.b64decode(integrity.strip()[len("sha512-"):], validate=True)
     except (ValueError, TypeError) as exc:
-        # Historical explicit-catch rationale, retained with the decode above.
-        # Named for the reason given at the referent's own decode above: the
-        # subclass relation already closed this path, and a guard nobody can read
-        # without the exception hierarchy in hand is one nobody can review.
+        # Both address checks handle malformed base64 through ValueError.
+        # The lockfile uses the same decoder and named refusal as the package,
+        # so each address can fail closed independently when padding is invalid.
+        # TypeError also converts to the same named refusal.
         raise PinRefusal(
             "pin-tag-only",
             f"the pin's lockfile_integrity {integrity!r} is not decodable "
