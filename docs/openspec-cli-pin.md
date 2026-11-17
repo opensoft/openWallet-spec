@@ -12,7 +12,9 @@ pin bodies remain identical to the preceding refresh.
 | scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | e58647c337c7ab2a70d5c2a6402be3220d568b38caa146ce8621a257bebd7f04 |
 | contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | 98d107669114bf28473b2c05f602f9d575dd031603ed23546c99dc6a4de0b7c5 |
 
-The existing spec suite passed nine tests and six subtests. The packaged\npinned CLI verified its content address and passed all seven strict targets.\nThe preceding source refresh remains recorded below.
+The existing spec suite passed nine tests and six subtests. The packaged
+pinned CLI verified its content address and passed all seven strict targets.
+The preceding source refresh remains recorded below.
 
 ## Shared verifier source refresh (2026-11-17)
 
