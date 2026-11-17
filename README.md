@@ -91,3 +91,5 @@ Source-validation maintenance: [feature 018 plan](specs/018-sonar-boundary-repai
 and [common CLI provenance](docs/openspec-cli-pin.md).
 
 Full-main source amendment: [feature 019 plan](specs/019-main-gate-repairs/plan.md).
+
+Neutral source maintenance: [feature 020](specs/020-source-quality/plan.md).
