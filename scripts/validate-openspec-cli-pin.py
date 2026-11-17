@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; do not edit here.
+# VENDORED from opensoft/openXfactory@91c6f36b2caeba5f230ebd201a604f863ee4bfef; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Run OpenSpec strict validation through the PINNED CLI, and refuse otherwise.
@@ -581,10 +581,23 @@ def _within_roots(value, roots, *, directory=False) -> Path:
     raise PinRefusal("pin-unresolvable", "operand is outside operator-selected roots")
 
 
-def authorize_cli_sources(args):
+def consumer_context_root(value) -> Path:
+    """An explicitly trusted embedding context, never a model-selected flag."""
+    try:
+        root = _authority_root(value)
+        if root.is_symlink() or not root.is_dir():
+            raise PinRefusal("pin-unresolvable", "consumer root must be an existing unlinked directory")
+        return root
+    except (OSError, RuntimeError, TypeError, ValueError):
+        raise PinRefusal("pin-unresolvable", "consumer root must be a bounded existing directory") from None
+
+
+def authorize_cli_sources(args, *, consumer_root=None):
     """Bind model selectors to separately supplied operator authority."""
+    default_pin = (PIN_PATH if consumer_root is None else
+                   consumer_context_root(consumer_root) / "contracts" / "openspec-cli-pin.yaml")
     configured = os.environ.get("XFACTORY_OPENSPEC_PIN_PATH")
-    expected = _authority_root(PIN_PATH if configured is None else configured)
+    expected = _authority_root(default_pin if configured is None else configured)
     supplied = _operand_path(args.pin) if args.pin is not None else expected
     if supplied.resolve() != expected.resolve():
         raise PinRefusal("pin-unresolvable", "--pin differs from operator-selected XFACTORY_OPENSPEC_PIN_PATH")
@@ -2240,7 +2253,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, consumer_root=None) -> int:
     """Return 0 on a clean run, 1 on validation failures, 2 on any refusal.
 
     The ORDER of the block below is the ordering the module docstring states, and
@@ -2251,7 +2264,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     try:
-        authorize_cli_sources(args)
+        root = ROOT if consumer_root is None else consumer_context_root(consumer_root)
+        authorize_cli_sources(args, consumer_root=consumer_root)
         pin_path = Path(args.pin)
         pin = read_pin(pin_path)
         version = pinned_version(pin)                       # check 1
@@ -2264,7 +2278,7 @@ def main(argv: list[str] | None = None) -> int:
         targets = validation_targets(args)                  # check 2
         if not args.path_mode:
             npm = trusted_npm_executable(args.npm)
-        repo = Path(args.repo).resolve() if args.repo else ROOT
+        repo = Path(args.repo).resolve() if args.repo else root
         # Asked BEFORE anything is fetched, for the same reason the shape checks
         # are: a pin whose exceptions cannot be scoped is unusable, and learning
         # that only after a registry round trip and a full corpus validation

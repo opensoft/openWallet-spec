@@ -1,3 +1,24 @@
+## Shared consumer-context candidate (2026-11-16)
+
+Status: prepared from openXfactory PR #1337 at 91c6f36b2caeba5f230ebd201a604f863ee4bfef;
+provider main admission is pending. The consumer context is an explicit trusted
+API argument. Standalone defaults and independent operator pin selection retain
+their existing precedence. The adapter can delegate to these authenticated
+shared sources while retaining its own pin, lock and validation corpus.
+
+The complete provider suite now contains 209 assertions, retaining all 193
+original cases and adding 16 context-boundary cases. CLI version, package lock,
+tarball and validation strictness are unchanged. This record supersedes the
+current-source statement below; all older preparation and admission receipts
+remain historical evidence.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 69c658e0e1fb122e9835fafc5e3078e966f9a7b6c33af95654ec245ddbfe4caf | 83071ffeaee05b6c516d58a97d0deb63ce1a9df8be3c0d1f303af3f2052c071e |
+| scripts/install-pinned-openspec-cli.py | ca335c19e42a88ccc306d1c33543f60183cc070c4419f84758c50ba05577674a | 72a74f605283309273cfc38a5f8c294652faf65e49c1d43ab560ef8a8fddb6bc |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | c9a50270f6b1a2c3516c4fbae1bf0922543ae4a0aadf242963b03bad28e7d072 |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
 ## Provider main admission (2026-11-16)
 
 openXfactory #1333 is merged at 828d88c2ca9d7bcf551e1759c847a9789c5c2066.

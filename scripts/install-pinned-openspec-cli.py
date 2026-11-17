@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@e0e0b9a31ec8f4d5ec2d611d373ce0a918abb5de; do not edit here.
+# VENDORED from opensoft/openXfactory@91c6f36b2caeba5f230ebd201a604f863ee4bfef; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Install the PINNED OpenSpec CLI and put it on PATH. Judge nothing.
@@ -151,11 +151,11 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, consumer_root=None) -> int:
     args = build_parser().parse_args(argv)
 
     try:
-        verifier.authorize_cli_sources(args)
+        verifier.authorize_cli_sources(args, consumer_root=consumer_root)
         args.npm = verifier.trusted_npm_executable(args.npm)
         pin_path = Path(args.pin)
         pin = verifier.read_pin(pin_path)

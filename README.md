@@ -89,3 +89,5 @@ shared OpenSpec/Speckit protocol, which runs from the assembly root.
 
 Source-validation maintenance: [feature 018 plan](specs/018-sonar-boundary-repairs/plan.md)
 and [common CLI provenance](docs/openspec-cli-pin.md).
+
+Full-main source amendment: [feature 019 plan](specs/019-main-gate-repairs/plan.md).
