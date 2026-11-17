@@ -1,3 +1,37 @@
+## Refusal comment correction (2026-11-17)
+
+The refreshed verifier includes the comment correction at openXfactory source
+7aaa749d2defc6ab7e18ffd428283c1ab8dd19c0, reviewed in
+[openXfactory #1343](https://github.com/opensoft/openXfactory/pull/1343).
+The reviewed source is published on main at 44e7b4bf8443f8d97790899c74228d5b56eab54a. The verifier Python AST, installer and
+pin bodies remain identical to the preceding refresh.
+
+| File | Provider SHA-256 | Vendored SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 316af08da61959a75c4934e85b4ba2db781fb4f887ecce0ace918b57ef386cb7 | b1cc6ba31615a9f2deb0592ac61a7ede34368f4b4e5c55039825484dc8fa527c |
+| scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | e58647c337c7ab2a70d5c2a6402be3220d568b38caa146ce8621a257bebd7f04 |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | 98d107669114bf28473b2c05f602f9d575dd031603ed23546c99dc6a4de0b7c5 |
+
+The existing spec suite passed nine tests and six subtests. The packaged
+pinned CLI verified its content address and passed all seven strict targets.
+The preceding source refresh remains recorded below.
+
+## Shared verifier source refresh (2026-11-17)
+
+This refresh takes the shared verifier from the published openXfactory commit
+59c4931fd89811f07f1a02046424a0fa78a2c92a. Its tree matches the reviewed source in
+[openXfactory #1341](https://github.com/opensoft/openXfactory/pull/1341).
+The installer and pin bodies, packaged CLI, dependency closure and workflow
+are identical to the previously admitted versions. The consumer provenance
+headers identify the published provider commit. Historical records follow.
+
+| File | Provider SHA-256 | Vendored SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | b23d19aecccae650ed72c7e5e331c26f9589ff6e22bb0ecff7a6d36ef2d83dff | 79a5ffd0eb2a0d6616217392bdc75ce62a1db23dc6007ce05b480d09477e67bb |
+| scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | c8bcf829c88a2aeec78008e5476e9a4a17d97a621ed6d1e23f88774b98c5f889 |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | efb1188daa902ace83dbf440ea917d2a2cbd8c3c0f88fcfcaa8e2f48cee151db |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
 ## Admitted neutral source and handoff (2026-11-17)
 
 Provider source 41eab21570efbd942f49b6ca728d286492adf02a is admitted on main
