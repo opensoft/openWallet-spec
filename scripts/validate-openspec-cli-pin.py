@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@91c6f36b2caeba5f230ebd201a604f863ee4bfef; do not edit here.
+# VENDORED from opensoft/openXfactory@bd9859850a7939c8e3120dfaeada020ecef4b083; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Run OpenSpec strict validation through the PINNED CLI, and refuse otherwise.

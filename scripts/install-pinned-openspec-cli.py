@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@91c6f36b2caeba5f230ebd201a604f863ee4bfef; do not edit here.
+# VENDORED from opensoft/openXfactory@bd9859850a7939c8e3120dfaeada020ecef4b083; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Install the PINNED OpenSpec CLI and put it on PATH. Judge nothing.
@@ -91,6 +91,7 @@ import importlib.util
 import os
 import sys
 from pathlib import Path
+from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts" / "validate-openspec-cli-pin.py"
@@ -106,6 +107,15 @@ def _load_verifier():
     does the pin name" would be the second copy of the pin this script exists to
     remove.
     """
+    # Trusted embedders may initialize the module with an already authenticated
+    # verifier. This is a Python embedding input, never a CLI or environment
+    # selector. It avoids reopening source or accepting cached bytecode after
+    # the caller has authenticated the complete source snapshot.
+    if "VERIFIED_VERIFIER" in globals():
+        selected = globals()["VERIFIED_VERIFIER"]
+        if not isinstance(selected, ModuleType):
+            raise TypeError("VERIFIED_VERIFIER must be an authenticated module")
+        return selected
     spec = importlib.util.spec_from_file_location(
         "openspec_cli_pin_verifier", VERIFIER)
     if spec is None or spec.loader is None:  # pragma: no cover - unreachable

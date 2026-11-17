@@ -1,3 +1,23 @@
+## Authenticated embedding candidate (2026-11-16)
+
+Status: prepared from openXfactory #1337 at bd9859850a7939c8e3120dfaeada020ecef4b083; provider
+main admission remains pending. The trusted Python embedding interface accepts
+the verifier module compiled from authenticated source before initializing the
+installer. It never rereads verifier source or cached bytecode in embedding mode.
+Standalone imports and all pin/profile/context controls retain their behavior.
+
+The provider suite passes all 211 assertions, including source substitution
+and timestamp-valid forged bytecode regressions. All 193 original cases remain.
+
+| File | Provider body SHA-256 | Complete consumer SHA-256 |
+| --- | --- | --- |
+| scripts/validate-openspec-cli-pin.py | 69c658e0e1fb122e9835fafc5e3078e966f9a7b6c33af95654ec245ddbfe4caf | 1be7c94085f497b83c1e78a7293f5a77e41630e3aa91287c4a0b9509bbe72660 |
+| scripts/install-pinned-openspec-cli.py | 2ef0067678926da91009344b006d67aa9931a46504982329c1f0c7b7dfec1052 | 2614677787febf47f9d230e0e7eef93c46b5d9bedf5b6d659f7928eb5d1ab62c |
+| contracts/openspec-cli-pin.yaml | 1bab358ce6d5275fcad6fd1af3a4320aebe42d25c158aa0364d680fd4d8fa482 | 51d892a992ddc328da73e5fbd960f2c63fb5d040e251fa6fd748df8ac260cb22 |
+| contracts/openspec-cli-pin.1.12.0.package-lock.json | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca | 696dce86e5e5699007129310d9de532795ce48467218fba03b729d38c829e2ca |
+
+Earlier entries remain historical evidence.
+
 ## Shared consumer-context candidate (2026-11-16)
 
 Status: prepared from openXfactory PR #1337 at 91c6f36b2caeba5f230ebd201a604f863ee4bfef;
