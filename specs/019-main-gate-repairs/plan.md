@@ -18,7 +18,7 @@ source filenames; source/bytecode attack copies retain their own scratch paths.
 
 ## Source handoff result (2026-11-17)
 
-Code/spec/root sources are admitted at ed567edb,0fe3151c and050bede0.
+Code/spec/root sources are admitted at ed567edb, 0fe3151c and 050bede0.
 The complete provider contexts pass 214 exact assertions each, including every
 original assertion. Real CLI/owning-leg validation passes and all eight artifact
 hashes remain unchanged. Evidence is handed to openXwallet #73. The selected
