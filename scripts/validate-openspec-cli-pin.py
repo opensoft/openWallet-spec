@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# VENDORED from opensoft/openXfactory@bd9859850a7939c8e3120dfaeada020ecef4b083; do not edit here.
+# VENDORED from opensoft/openXfactory@41eab21570efbd942f49b6ca728d286492adf02a; do not edit here.
 # Everything below this header block is byte-identical to the provider.
 # Current provenance and hashes: docs/openspec-cli-pin.md.
 """Run OpenSpec strict validation through the PINNED CLI, and refuse otherwise.
@@ -2253,6 +2253,84 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def validate_pinned_corpus(executable, repo, targets, dispositions, identity):
+    """Run strict validation and reconcile only explicitly ratified findings."""
+    if not dispositions:
+        verdict = run_validation(executable, repo, targets)   # check 5
+        applied, undispositioned = [], []
+    else:
+        verdict, findings, totals = run_reported_validation(  # check 5
+            executable, repo, targets)
+        render_findings(findings)
+        print(f"Totals: {totals.get('passed', 0)} passed, "
+              f"{totals.get('failed', 0)} failed "
+              f"({totals.get('items', 0)} items)", flush=True)
+        corpus_wide = any("--all" in target for target in targets)
+        applied, undispositioned, stale = reconcile(          # check 6
+            findings, dispositions, identity, corpus_wide)
+        report_dispositions(identity, applied, stale, corpus_wide)
+        if stale:
+            raise PinRefusal(
+                "pin-disposition-stale",
+                "the pin disposes findings this run did not produce:\n"
+                + "\n".join(
+                    f"  • {entry['item']} / {entry['path']} "
+                    f"(repo {entry['repo']})" for entry in stale)
+                + "\n\nThe condition each was granted for no longer "
+                "occurs — typically because the change archived out of "
+                "the `--all` corpus, or because the pinned CLI now words "
+                "the finding differently. A suppression that outlives "
+                "its condition is a standing exemption nobody re-read, "
+                "so it is REFUSED rather than tolerated: delete the "
+                "entry from `dispositions:` in "
+                "contracts/openspec-cli-pin.yaml, in a change that says "
+                "the condition is gone")
+        # THE VERDICT IS DERIVED FROM THE RECONCILED FINDINGS AND NOT
+        # FROM THE CLI'S EXIT CODE, which is the whole mechanism: the
+        # tool exits non-zero over findings this pin has accepted in
+        # writing, and a pass here is a statement about UNDISPOSITIONED
+        # failures rather than an agreement with that exit code.
+        verdict = 1 if undispositioned else 0
+    return verdict, applied, undispositioned
+
+
+def report_validation_verdict(verdict, undispositioned, applied, package, version):
+    """Preserve the existing failure, accepted-exception and clean verdicts."""
+    if verdict != 0:
+        if not undispositioned:
+            # THE DISPOSITION-FREE PATH, and its message is the one that shipped
+            # with the pin, unchanged: nothing was reconciled here, so nothing
+            # may be implied about what was or was not dispositioned.
+            print(f"openspec-cli-pin: the pinned CLI reported failures (exit "
+                  f"{verdict}). The PIN held — this is a finding about the "
+                  f"deltas, not about which tool ran.", file=sys.stderr)
+            return 1
+        detail = ("\n" + "\n".join(
+            f"  ✗ {row['item']} / {row['path']}: {row['message']}"
+            for row in undispositioned)
+            + "\n  Remedy for each: FIX IT, or DISPOSITION IT in "
+              "contracts/openspec-cli-pin.yaml with a canon citation "
+              "(`cited_to:`, non-empty) and an authority (`ratified_by:`). "
+              "An undispositioned ERROR is not a tolerated one, and a "
+              "disposition with no citation is refused rather than read as "
+              "'none needed'.")
+        print(f"openspec-cli-pin: the pinned CLI reported "
+              f"{len(undispositioned)} failure(s) this pin does not "
+              f"disposition. The PIN held — this is a finding about the "
+              f"deltas, not about which tool ran.{detail}", file=sys.stderr)
+        return 1
+    if applied:
+        print(f"OK openspec-cli-pin: {package}@{version} verified against its "
+              f"content address; every target validated --strict with 0 "
+              f"UNDISPOSITIONED failures. THIS IS NOT A CLEAN TREE: "
+              f"{len(applied)} finding(s) are ACCEPTED EXCEPTIONS, named above.")
+        return 0
+    print(f"OK openspec-cli-pin: {package}@{version} verified against its "
+          f"content address and every target validated --strict clean")
+    return 0
+
+
+
 def main(argv: list[str] | None = None, *, consumer_root=None) -> int:
     """Return 0 on a clean run, 1 on validation failures, 2 on any refusal.
 
@@ -2334,78 +2412,14 @@ def main(argv: list[str] | None = None, *, consumer_root=None) -> int:
                      "binary's own tree" if args.path_mode
                      else "; installed with `npm ci --ignore-scripts`"),
                   flush=True)
-            if not dispositions:
-                verdict = run_validation(executable, repo, targets)   # check 5
-                applied, undispositioned, stale = [], [], []
-            else:
-                verdict, findings, totals = run_reported_validation(  # check 5
-                    executable, repo, targets)
-                render_findings(findings)
-                print(f"Totals: {totals.get('passed', 0)} passed, "
-                      f"{totals.get('failed', 0)} failed "
-                      f"({totals.get('items', 0)} items)", flush=True)
-                corpus_wide = any("--all" in target for target in targets)
-                applied, undispositioned, stale = reconcile(          # check 6
-                    findings, dispositions, identity, corpus_wide)
-                report_dispositions(identity, applied, stale, corpus_wide)
-                if stale:
-                    raise PinRefusal(
-                        "pin-disposition-stale",
-                        "the pin disposes findings this run did not produce:\n"
-                        + "\n".join(
-                            f"  • {entry['item']} / {entry['path']} "
-                            f"(repo {entry['repo']})" for entry in stale)
-                        + "\n\nThe condition each was granted for no longer "
-                        "occurs — typically because the change archived out of "
-                        "the `--all` corpus, or because the pinned CLI now words "
-                        "the finding differently. A suppression that outlives "
-                        "its condition is a standing exemption nobody re-read, "
-                        "so it is REFUSED rather than tolerated: delete the "
-                        "entry from `dispositions:` in "
-                        "contracts/openspec-cli-pin.yaml, in a change that says "
-                        "the condition is gone")
-                # THE VERDICT IS DERIVED FROM THE RECONCILED FINDINGS AND NOT
-                # FROM THE CLI'S EXIT CODE, which is the whole mechanism: the
-                # tool exits non-zero over findings this pin has accepted in
-                # writing, and a pass here is a statement about UNDISPOSITIONED
-                # failures rather than an agreement with that exit code.
-                verdict = 1 if undispositioned else 0
+            verdict, applied, undispositioned = validate_pinned_corpus(
+                executable, repo, targets, dispositions, identity)
     except PinRefusal as exc:
         print(str(exc), file=sys.stderr)
         return 2
 
-    if verdict != 0:
-        if not undispositioned:
-            # THE DISPOSITION-FREE PATH, and its message is the one that shipped
-            # with the pin, unchanged: nothing was reconciled here, so nothing
-            # may be implied about what was or was not dispositioned.
-            print(f"openspec-cli-pin: the pinned CLI reported failures (exit "
-                  f"{verdict}). The PIN held — this is a finding about the "
-                  f"deltas, not about which tool ran.", file=sys.stderr)
-            return 1
-        detail = ("\n" + "\n".join(
-            f"  ✗ {row['item']} / {row['path']}: {row['message']}"
-            for row in undispositioned)
-            + "\n  Remedy for each: FIX IT, or DISPOSITION IT in "
-              "contracts/openspec-cli-pin.yaml with a canon citation "
-              "(`cited_to:`, non-empty) and an authority (`ratified_by:`). "
-              "An undispositioned ERROR is not a tolerated one, and a "
-              "disposition with no citation is refused rather than read as "
-              "'none needed'.")
-        print(f"openspec-cli-pin: the pinned CLI reported "
-              f"{len(undispositioned)} failure(s) this pin does not "
-              f"disposition. The PIN held — this is a finding about the "
-              f"deltas, not about which tool ran.{detail}", file=sys.stderr)
-        return 1
-    if applied:
-        print(f"OK openspec-cli-pin: {package}@{version} verified against its "
-              f"content address; every target validated --strict with 0 "
-              f"UNDISPOSITIONED failures. THIS IS NOT A CLEAN TREE: "
-              f"{len(applied)} finding(s) are ACCEPTED EXCEPTIONS, named above.")
-        return 0
-    print(f"OK openspec-cli-pin: {package}@{version} verified against its "
-          f"content address and every target validated --strict clean")
-    return 0
+    return report_validation_verdict(
+        verdict, undispositioned, applied, package, version)
 
 
 if __name__ == "__main__":

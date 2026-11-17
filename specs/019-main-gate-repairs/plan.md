@@ -11,3 +11,7 @@ and publish children before ordinary coherent root pin updates.
 The shared installer receives the verifier module compiled from authenticated
 bytes. Source replacement and forged timestamp-valid bytecode after verification
 must not change executed bytes.
+
+Preserve validation/reconciliation and verdict semantics when consuming the
+provider complexity correction. Canonical source coverage must come from actual
+source filenames; source/bytecode attack copies retain their own scratch paths.
